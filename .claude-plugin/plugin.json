@@ -1,0 +1,41 @@
+{
+  "name": "claude-pulse",
+  "description": "Customizable status bar for Claude Code with multiple themes and advanced features",
+  "version": "1.0.0",
+  "author": "Claude Pulse Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/example/claude-pulse"
+  },
+  "keywords": ["claude-code", "status-bar", "monitoring", "productivity"],
+  "commands": [
+    {
+      "name": "install",
+      "description": "Install claude-pulse to Claude Code settings",
+      "file": "commands/install.md"
+    },
+    {
+      "name": "uninstall",
+      "description": "Uninstall claude-pulse",
+      "file": "commands/uninstall.md"
+    },
+    {
+      "name": "theme",
+      "description": "Switch theme (dark, light, cyberpunk, forest, ocean)",
+      "file": "commands/theme.md"
+    },
+    {
+      "name": "reload",
+      "description": "Reload configuration without restarting Claude Code",
+      "file": "commands/reload.md"
+    }
+  ],
+  "skills": [
+    {
+      "name": "pulse-configuration",
+      "description": "Configure claude-pulse modules and themes",
+      "file": "skills/pulse-configuration.md"
+    }
+  ]
+}
