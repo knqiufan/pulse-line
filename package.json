@@ -15,12 +15,21 @@
     "lint": "eslint src/**/*.ts",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["claude-code", "pulse", "cli"],
+  "keywords": [
+    "claude-code",
+    "pulse",
+    "cli"
+  ],
   "license": "MIT",
-  "engines": { "node": ">=18.0.0" },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
-    "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
-    "ts-node": "^10.9.0"
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "commander": "^14.0.3"
   }
 }
