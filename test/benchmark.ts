@@ -46,7 +46,6 @@ for (let i = 0; i < ITERATIONS; i++) {
       cwd: '/d/code/status-bar-cc/.worktrees/implementation',
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
-      shell: false
     });
   } catch (e) {
     // Ignore errors from output stream
