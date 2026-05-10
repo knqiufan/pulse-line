@@ -43,7 +43,25 @@ Default `iconSet` is **`text`**: bracket tags such as `[M]`, `[G]`, separators u
 
 Optional **`iconSet`: `"nerd"`** substitutes Nerd Font / Powerline glyphs; use only if your terminal uses a patched font, or icons may render as tofu.
 
-## Third-party API keys (account usage)
+Under **`iconSet`: `"text"`**, icons from `~/.claude/pulse/config.json` that contain **private-use-plane** characters (legacy Nerd glyphs) are **automatically reset** to the bundled ASCII defaults (`[M]`, `[C]`, …), so old configs do not keep producing tofu.
+
+## Model name in the status bar
+
+Displayed model text is chosen in this order (**first non-empty wins**):
+
+1. **`process.env`** among: `PULSE_MODEL_DISPLAY`, `CLAUDE_CODE_MODEL_DISPLAY`, `CLAUDE_MODEL`, `ANTHROPIC_MODEL`
+2. The same keys inside merged Claude **`settings*.json`** `env` blocks (merge order is the same as API keys below)
+3. `model.display_name` from Claude Code’s stdin JSON snapshot
+
+Example — pin the label from global settings (`~/.claude/settings.json`):
+
+```json
+{
+  "env": {
+    "PULSE_MODEL_DISPLAY": "Sonnet 4.6"
+  }
+}
+```
 
 Keys are **not** read from `~/.claude/pulse/api-keys.json`. Pulse merges the `env` objects from Claude Code settings in this order (each file overrides the previous):
 

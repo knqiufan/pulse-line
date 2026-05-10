@@ -2,6 +2,7 @@
 
 import type { PulseInput } from '../types/pulse-input';
 import type { Theme } from '../types/theme';
+import { resolveModelDisplayLabel } from '../utils/model-display-env';
 
 export interface ModelSegment {
   text: string;
@@ -11,7 +12,10 @@ export interface ModelSegment {
 }
 
 export function extractModel(input: PulseInput, theme: Theme): ModelSegment | null {
-  const modelName = input.model?.display_name;
+  const modelName = resolveModelDisplayLabel(
+    input.cwd,
+    input.model?.display_name
+  );
   if (!modelName) return null;
 
   const style = theme.components.model;

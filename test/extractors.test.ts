@@ -42,12 +42,49 @@ test('extractModel should return model segment', () => {
 });
 
 test('extractModel should return null for empty display_name', () => {
-  const input = fullInput({
-    model: { id: 'claude-opus-4', display_name: '' }
-  });
+  const keys = [
+    'PULSE_MODEL_DISPLAY',
+    'CLAUDE_CODE_MODEL_DISPLAY',
+    'CLAUDE_MODEL',
+    'ANTHROPIC_MODEL'
+  ] as const;
+  const saved: Record<string, string | undefined> = {};
+  for (const k of keys) {
+    saved[k] = process.env[k];
+    delete process.env[k];
+  }
+  try {
+    const input = fullInput({
+      model: { id: 'claude-opus-4', display_name: '' }
+    });
 
-  const result = extractModel(input, darkTheme);
-  assert.strictEqual(result, null);
+    const result = extractModel(input, darkTheme);
+    assert.strictEqual(result, null);
+  } finally {
+    for (const k of keys) {
+      const v = saved[k];
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+  }
+});
+
+test('extractModel uses PULSE_MODEL_DISPLAY over stdin when set', () => {
+  const k = 'PULSE_MODEL_DISPLAY';
+  const prev = process.env[k];
+  process.env[k] = 'Custom From Settings';
+  try {
+    const input = fullInput({
+      model: { id: 'x', display_name: 'Opus 4' }
+    });
+    const result = extractModel(input, darkTheme);
+    assert.ok(result);
+    assert.ok(result!.text.includes('Custom From Settings'));
+    assert.ok(!result!.text.includes('Opus 4'));
+  } finally {
+    if (prev === undefined) delete process.env[k];
+    else process.env[k] = prev;
+  }
 });
 
 test('extractContext should format progress correctly', () => {

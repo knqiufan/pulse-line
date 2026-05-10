@@ -7,24 +7,28 @@ import { debug } from '../utils/logger';
 import { loadSessionCache, saveSessionCache } from '../utils/cache';
 import type { PulseConfig } from '../types/pulse-config';
 import { DEFAULT_CONFIG } from '../types/pulse-config';
+import { sanitizePulseDisplayConfig } from '../utils/display-sanitize';
 
 export function loadConfig(): PulseConfig {
   const configPath = getConfigPath();
-  const cacheKey = 'config';
+  const cacheKey = 'pulse-config-v2';
 
   const cached = loadSessionCache<PulseConfig>('global', cacheKey);
   if (cached) {
+    sanitizePulseDisplayConfig(cached);
     debug('Config loaded from cache');
     return cached;
   }
 
   let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG)) as PulseConfig;
+  sanitizePulseDisplayConfig(config);
 
   if (fs.existsSync(configPath)) {
     try {
       const raw = fs.readFileSync(configPath, 'utf8');
       const userConfig = JSON.parse(raw);
       config = deepMerge(config, userConfig);
+      sanitizePulseDisplayConfig(config);
       debug('Config loaded from file:', configPath);
     } catch (err) {
       debug('Config load error, using defaults:', err);

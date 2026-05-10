@@ -50,6 +50,26 @@ Each module in the `modules` section has the following properties:
 - `"text"` (default): bracket labels + separators safe without Nerd Fonts.
 - `"nerd"`: Nerd Font / Powerline symbols; patched terminal font required.
 
+With **`iconSet`: `"text"`**, if your `config.json` still has old Nerd/PUA characters in `modules.*.icon` or `separator`, Pulse **replaces** them with the bundled ASCII defaults so terminals without patched fonts do not show replacement glyphs (tofu).
+
+## Model name on the status bar
+
+The model segment label is resolved in this order (**first non-empty wins**):
+
+1. **`process.env`**: `PULSE_MODEL_DISPLAY`, `CLAUDE_CODE_MODEL_DISPLAY`, `CLAUDE_MODEL`, `ANTHROPIC_MODEL`
+2. The same keys from merged Claude **`settings*.json`** `env` (global then project; see account usage docs)
+3. `model.display_name` from Claude Code’s stdin JSON
+
+Example in `~/.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "PULSE_MODEL_DISPLAY": "Sonnet 4.6"
+  }
+}
+```
+
 ## Theme Configuration
 
 Change theme via CLI:
@@ -209,6 +229,12 @@ claude-pulse reload
 1. Disable advanced modules (thirdPartyApi, rateLimits)
 2. Reduce `barWidth` to 8-10
 3. Check cache is working (should see instant updates)
+
+### Icons show as `` or boxes
+
+1. Keep **`iconSet`** as **`"text"`** (default) unless the terminal font is Nerd-patched.
+2. Remove private-use / Powerline glyphs from `separator` and `modules.*.icon`, or let Pulse reset them automatically in text mode.
+3. Run `claude-pulse reload` or restart Claude Code after editing `config.json`.
 
 ## Best Practices
 
