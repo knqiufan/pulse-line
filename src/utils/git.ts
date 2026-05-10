@@ -1,6 +1,7 @@
 // src/utils/git.ts
 
 import { execSync } from 'child_process';
+import { debug } from './logger';
 
 export interface GitInfo {
   branch: string | null;
@@ -38,8 +39,10 @@ export function getGitInfo(cwd: string, timeout: number = 200): GitInfo {
       // No upstream set, ignore
     }
 
+    debug(`Git branch: ${branch}, ahead: ${ahead}, behind: ${behind}`);
     return { branch, ahead, behind };
-  } catch {
+  } catch (err) {
+    debug('Git command failed:', err);
     return { branch: null, ahead: 0, behind: 0 };
   }
 }

@@ -1,0 +1,34 @@
+{
+  "cwd": "/tmp/test-git-repo",
+  "session_id": "s1",
+  "transcript_path": "/tmp/s1.jsonl",
+  "model": {
+    "id": "claude-opus-4",
+    "display_name": "Opus 4"
+  },
+  "workspace": {
+    "current_dir": "/tmp/test-git-repo",
+    "read_only": false
+  },
+  "version": "1.0",
+  "output_style": {
+    "name": "default"
+  },
+  "cost": {
+    "total_cost_usd": 0.042
+  },
+  "context_window": {
+    "total_input_tokens": 1200,
+    "total_output_tokens": 420,
+    "context_window_size": 200000,
+    "used_percentage": 65,
+    "remaining_percentage": 99.4,
+    "current_usage": {
+      "input_tokens": 850,
+      "output_tokens": 420,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 350
+    }
+  },
+  "exceeds_200k_tokens": false
+}
