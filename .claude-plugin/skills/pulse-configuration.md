@@ -19,81 +19,36 @@ Each module in the `modules` section has the following properties:
 
 ```json
 {
-  "enabled": true,      // Enable/disable the module
-  "order": 1,           // Display order (lower = leftmost)
-  "icon": "🧠"          // Optional: custom icon (emoji or text)
+  "enabled": true,
+  "order": 1,
+  "icon": "[M]"
 }
 ```
 
 ### Available Modules
 
-#### Core Modules (Recommended)
+#### Core modules
 
-**model** - Model indicator
-- Displays current model (Opus, Sonnet, Haiku)
-- Icon: 🧠
-- Default: enabled
+**model** — current model; default tag `[M]`.
 
-**context** - Context usage
-- Shows token usage with progress bar
-- Configurable bar width and display options
-- Icon: 📊
+**context** — usage bar; default `[C]`.
 
-**git** - Git branch
-- Shows current branch with upstream status
-- Detects uncommitted changes
-- Icon: 🌿
+**git** — branch plus `↑`/`↓`; default `[G]`.
 
-**cost** - Session cost
-- Tracks total session cost in USD
-- Updates in real-time
-- Icon: 💰
+**cost** — USD total; default `[$]`.
 
-#### Advanced Modules (Opt-in)
+#### Advanced (`config.json` keys)
 
-**sessionDuration** - Session duration
-- Shows how long the current session has been running
-- Icon: ⏱️
+**duration**, **workspace**, **turns**, **cacheRatio**, **thinking**, **rateLimits**, **weeklyQuota**, **mcpStatus**, **outputStyle** — bracket tags `[T]` … `[S]` in defaults (see bundled `pulse-config.ts`).
 
-**workspace** - Workspace name
-- Displays project/directory name
-- Useful when working across multiple projects
-- Icon: 📁
+**accountUsage** — Zhipu / DeepSeek quotas; keys from merged Claude **`settings*.json`** `env` plus `process.env` (no `pulse/api-keys.json`).
 
-**turns** - Conversation turns
-- Counts user/assistant message exchanges
-- Icon: 💬
+**thirdPartyApi** — optional HTTP prefetch; rendered usage primarily via **`accountUsage`** cache.
 
-**cacheHitRatio** - Cache efficiency
-- Shows cache hit percentage
-- Helps optimize API usage
-- Icon: 📦
+### iconSet
 
-**thinking** - Thinking mode status
-- Indicates when model is in thinking mode
-- Icon: 🤔
-
-**rateLimits** - Rate limits (Pro/Max)
-- Shows API rate limit progress
-- Only visible for Pro/Max subscribers
-- Icon: ⚡
-
-**weeklyQuota** - Weekly quota
-- Displays remaining quota for the week
-- Icon: 📅
-
-**mcpStatus** - MCP servers
-- Shows status of MCP servers
-- Icon: 🔌
-
-**outputStyle** - Output style
-- Displays current output style setting
-- Icon: 📝
-
-**thirdPartyApi** - Third-party APIs
-- Queries GLM, DeepSeek, MiniMax, StepFun, Mimo APIs
-- Shows usage and balance
-- Icon: 🔗
+- `"text"` (default): bracket labels + separators safe without Nerd Fonts.
+- `"nerd"`: Nerd Font / Powerline symbols; patched terminal font required.
 
 ## Theme Configuration
 
@@ -122,19 +77,9 @@ Or edit config file directly:
 
 ## Layout Customization
 
-The `separator` field controls module spacing:
+The `separator` string is drawn between modules. `padding` repeats that many **spaces** on both sides of each separator (after color is applied).
 
-```json
-{
-  "separator": " │ "
-}
-```
-
-Common separators:
-- `" │ "` - Vertical bar with spaces (default)
-- `" • "` - Bullet separator
-- `"  "` - Single space
-- `" | "` - Simple pipe
+Example default: `"separator": " \u2502 ", "padding": 1` (U+2502 vertical rule with breathing room).
 
 ## Example Configurations
 
@@ -181,9 +126,9 @@ Common separators:
     "workspace": { "enabled": true, "order": 4 },
     "turns": { "enabled": true, "order": 5 },
     "cost": { "enabled": true, "order": 6 },
-    "sessionDuration": { "enabled": true, "order": 7 },
+    "duration": { "enabled": true, "order": 7 },
     "rateLimits": { "enabled": true, "order": 8 },
-    "cacheHitRatio": { "enabled": true, "order": 9 }
+    "cacheRatio": { "enabled": true, "order": 9 }
   }
 }
 ```
@@ -269,7 +214,7 @@ claude-pulse reload
 
 1. **Start minimal** - Enable core modules first
 2. **Add gradually** - Test each new module
-3. **Customize icons** - Use meaningful emojis
+3. **Customize icons** — short ASCII tags (for example `[M]`, `[ctx]`) keep columns aligned without emoji.
 4. **Use reload** - No need to restart Claude Code
 5. **Check config** - Use `claude-pulse config` to edit
 

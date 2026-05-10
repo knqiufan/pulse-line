@@ -10,7 +10,7 @@ export const darkTheme: Theme = {
     description: 'Professional dark theme'
   },
   separator: {
-    left: '',
+    left: '\u2502',
     right: '',
     color: '#414868'
   },
@@ -26,21 +26,21 @@ export const darkTheme: Theme = {
     dim: '#414868'
   },
   components: {
-    model: { fg: '#7aa2f7', bold: true, icon: '󰀹', showIcon: true },
-    context: { fg: '#9ece6a', icon: '󰂅', showIcon: true },
+    model: { fg: '#7aa2f7', bold: true, icon: '[M]', showIcon: true },
+    context: { fg: '#9ece6a', icon: '[C]', showIcon: true },
     contextBar: { fg: '#9ece6a', bg: '#414868', icon: '', showIcon: false },
-    git: { fg: '#7dcfff', icon: '󰂀', showIcon: true },
-    cost: { fg: '#e0af68', icon: '󰀪', showIcon: true },
-    duration: { fg: '#565f89', icon: '󰀙', showIcon: true },
-    workspace: { fg: '#bb9af7', icon: '󰀻', showIcon: true },
-    turns: { fg: '#7dcfff', icon: '󰀔', showIcon: true },
-    cacheRatio: { fg: '#bb9af7', icon: '󰃒', showIcon: true },
-    rateLimit: { fg: '#7dcfff', icon: '󰀋', showIcon: true },
-    weeklyQuota: { fg: '#e0af68', icon: '󰀰', showIcon: true },
-    accountUsage: { fg: '#a855f7', icon: '󰃦', showIcon: true },
-    mcpStatus: { fg: '#565f89', icon: '󰃦', showIcon: true },
-    thinking: { fg: '#bb9af7', icon: '󰂲', showIcon: true },
-    outputStyle: { fg: '#565f89', icon: '󰀺', showIcon: true },
+    git: { fg: '#7dcfff', icon: '[G]', showIcon: true },
+    cost: { fg: '#e0af68', icon: '[$]', showIcon: true },
+    duration: { fg: '#565f89', icon: '[T]', showIcon: true },
+    workspace: { fg: '#bb9af7', icon: '[W]', showIcon: true },
+    turns: { fg: '#7dcfff', icon: '[N]', showIcon: true },
+    cacheRatio: { fg: '#bb9af7', icon: '[R]', showIcon: true },
+    rateLimit: { fg: '#7dcfff', icon: '[L]', showIcon: true },
+    weeklyQuota: { fg: '#e0af68', icon: '[Q]', showIcon: true },
+    accountUsage: { fg: '#a855f7', icon: '[A]', showIcon: true },
+    mcpStatus: { fg: '#565f89', icon: '[P]', showIcon: true },
+    thinking: { fg: '#bb9af7', icon: '[Think]', showIcon: true },
+    outputStyle: { fg: '#565f89', icon: '[S]', showIcon: true },
     separator: { fg: '#414868', dim: true, icon: '', showIcon: false }
   }
 };

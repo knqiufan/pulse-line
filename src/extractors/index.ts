@@ -33,7 +33,7 @@ export type { ThinkingSegment } from './thinking';
 export { extractOutputStyle } from './output-style';
 export type { OutputStyleSegment } from './output-style';
 
-export { extractThirdPartyApi, createDefaultApiKeysConfig } from './third-party-api';
+export { extractThirdPartyApi } from './third-party-api';
 export type { ApiUsageResult } from './third-party-api';
 
 export { extractAccountUsageSync, refreshAccountUsage, type AccountUsageResult } from './account-usage';

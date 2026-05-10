@@ -4,17 +4,31 @@ import type { Theme } from '../types/theme';
 
 export interface LayoutSegment {
   text: string;
-  separator: string;
 }
 
-export function renderLayout(segments: LayoutSegment[], theme: Theme): string {
-  const sep = theme.separator.left;
+export interface LayoutOptions {
+  separator: string;
+  padding: number;
+}
+
+export function renderLayout(
+  segments: LayoutSegment[],
+  theme: Theme,
+  options: LayoutOptions
+): string {
+  const sepInner =
+    options.separator !== undefined && options.separator !== ''
+      ? options.separator
+      : theme.separator.left;
+
+  const pad = Math.max(0, options.padding);
+  const paddedSep = `${' '.repeat(pad)}${sepInner}${' '.repeat(pad)}`;
   const sepColor = theme.separator.color;
 
   let result = '';
   for (let i = 0; i < segments.length; i++) {
-    if (i > 0 && sep) {
-      result += colorize(sepColor, sep);
+    if (i > 0 && paddedSep.trim() !== '') {
+      result += colorize(sepColor, paddedSep);
     }
     result += segments[i].text;
   }

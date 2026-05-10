@@ -7,10 +7,9 @@ import {
   getBuiltinThemeNames,
   getAllThemes
 } from '../src/themes';
-import type { Theme } from '../src/types/theme';
 
 test('loadTheme should load dark theme', () => {
-  const theme = loadTheme('dark');
+  const theme = loadTheme('dark', 'text');
   assert.ok(theme);
   assert.strictEqual(theme.meta.name, 'Deep Dark');
   assert.ok(theme.colors.primary);
@@ -18,33 +17,39 @@ test('loadTheme should load dark theme', () => {
 });
 
 test('loadTheme should load light theme', () => {
-  const theme = loadTheme('light');
+  const theme = loadTheme('light', 'text');
   assert.ok(theme);
   assert.strictEqual(theme.meta.name, 'Minimal Light');
 });
 
 test('loadTheme should load cyberpunk theme', () => {
-  const theme = loadTheme('cyberpunk');
+  const theme = loadTheme('cyberpunk', 'text');
   assert.ok(theme);
   assert.strictEqual(theme.meta.name, 'Cyberpunk');
 });
 
 test('loadTheme should load forest theme', () => {
-  const theme = loadTheme('forest');
+  const theme = loadTheme('forest', 'text');
   assert.ok(theme);
   assert.strictEqual(theme.meta.name, 'Forest');
 });
 
 test('loadTheme should load ocean theme', () => {
-  const theme = loadTheme('ocean');
+  const theme = loadTheme('ocean', 'text');
   assert.ok(theme);
   assert.strictEqual(theme.meta.name, 'Ocean');
 });
 
 test('loadTheme should fallback to dark for unknown theme', () => {
-  const theme = loadTheme('nonexistent');
+  const theme = loadTheme('nonexistent', 'text');
   assert.ok(theme);
   assert.strictEqual(theme.meta.name, 'Deep Dark');
+});
+
+test('loadTheme nerd overlays PUA icons and powerline sep', () => {
+  const t = loadTheme('dark', 'nerd');
+  assert.notStrictEqual(t.components.model.icon, '[M]');
+  assert.strictEqual(t.separator.left, '\u{e0b0}');
 });
 
 test('getBuiltinThemeNames should return 5 themes', () => {
@@ -79,7 +84,7 @@ test('all themes should have all component styles', () => {
   const requiredComponents = [
     'model', 'context', 'contextBar', 'git', 'cost', 'duration',
     'workspace', 'turns', 'cacheRatio', 'rateLimit', 'weeklyQuota',
-    'mcpStatus', 'thinking', 'outputStyle', 'separator'
+    'accountUsage', 'mcpStatus', 'thinking', 'outputStyle', 'separator'
   ];
 
   for (const theme of themes) {

@@ -18,7 +18,9 @@ export function extractRateLimits(input: PulseInput, theme: Theme): RateLimitSeg
   const pct = Math.min(100, (fiveHour.requests_used / fiveHour.requests_limit) * 100);
   const barWidth = 8;
   const bar = renderProgressBar(pct, barWidth);
-  const text = `⚡ ${bar} ${pct.toFixed(0)}%`;
+  const i = theme.components.rateLimit.icon;
+  const glyph = theme.components.rateLimit.showIcon !== false && i ? `${i} ` : '';
+  const text = `${glyph}${bar} ${pct.toFixed(0)}%`;
 
   return {
     text,
@@ -33,7 +35,10 @@ export function extractWeeklyQuota(input: PulseInput, theme: Theme): RateLimitSe
   const pct = Math.min(100, (week.requests_used / week.requests_limit) * 100);
   const barWidth = 10;
   const bar = renderProgressBar(pct, barWidth);
-  const text = `📅 ${bar} ${pct.toFixed(0)}%`;
+  const wi = theme.components.weeklyQuota.icon;
+  const wglyph =
+    theme.components.weeklyQuota.showIcon !== false && wi ? `${wi} ` : '';
+  const text = `${wglyph}${bar} ${pct.toFixed(0)}%`;
 
   return {
     text,

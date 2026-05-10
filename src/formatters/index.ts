@@ -6,4 +6,4 @@ export { renderSeparator } from './separator';
 export { renderSegment } from './segment';
 export type { SegmentData } from './segment';
 export { renderLayout } from './layout';
-export type { LayoutSegment } from './layout';
+export type { LayoutSegment, LayoutOptions } from './layout';

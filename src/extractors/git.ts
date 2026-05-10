@@ -28,7 +28,8 @@ export function extractGit(cwd: string, sessionId: string, theme: Theme): GitSeg
 function renderGit(info: { branch: string | null; ahead: number; behind: number }, theme: Theme): GitSegment | null {
   if (!info.branch) return null;
 
-  let text = `🌿 ${info.branch}`;
+  const glyph = theme.components.git.icon ? `${theme.components.git.icon} ` : '';
+  let text = `${glyph}${info.branch}`;
   if (info.ahead > 0 || info.behind > 0) {
     text += ` ↑${info.ahead} ↓${info.behind}`;
   }

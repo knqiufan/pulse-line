@@ -1,0 +1,7 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "node bin/claude-pulse.js",
+    "padding": 1
+  }
+}

@@ -15,9 +15,11 @@ export function extractModel(input: PulseInput, theme: Theme): ModelSegment | nu
   if (!modelName) return null;
 
   const style = theme.components.model;
+  const glyph =
+    style.showIcon !== false && style.icon ? `${style.icon} ` : '';
 
   return {
-    text: `${style.icon} ${modelName}`,
+    text: `${glyph}${modelName}`,
     fg: style.fg,
     bold: style.bold ?? false,
     dim: style.dim ?? false

@@ -4,30 +4,27 @@ Customizable status bar for Claude Code CLI with multiple themes and advanced fe
 
 ## Features
 
-**Core Modules (always visible):**
-- 🧠 Model indicator (Opus, Sonnet, etc.)
-- 📊 Context usage with visual progress bar
-- 🌿 Git branch with upstream status
-- 💰 Session cost tracking
+**Core modules (default on):**
 
-**Advanced Modules (opt-in):**
-- ⏱️ Session duration
-- 📁 Workspace name
-- 💬 Conversation turns
-- 📦 Cache hit ratio
-- 🤔 Thinking mode status
-- ⚡ Rate limits (Pro/Max subscribers)
-- 📅 Weekly quota
-- 🔌 MCP server status
-- 📝 Output style
-- 🔗 Third-party API usage (GLM, DeepSeek, MiniMax, StepFun, Mimo)
+- Model name (Opus, Sonnet, etc.)
+- Context usage with Unicode block progress bar
+- Git branch and ahead/behind hints
+- Session cost (USD)
 
-**Built-in Themes:**
-- 🌑 Deep Dark (default)
-- ☀️ Minimal Light
-- 🦾 Forest
-- 🌊 Ocean
-- 🤖 Cyberpunk
+**Advanced modules (opt-in):**
+
+- Session duration
+- Workspace / project folder name
+- Conversation turn count
+- Cache read ratio
+- Thinking mode flag
+- API rate limits (Pro/Max)
+- Weekly quota bars
+- MCP server count
+- Output style label
+- Account usage queries (see below)
+
+**Themes:** Deep Dark (default), Minimal Light, Forest, Ocean, Cyberpunk.
 
 ## Installation
 
@@ -38,55 +35,97 @@ claude-pulse install
 
 ## Usage
 
-Claude Code automatically calls `pulse.command` on events. After installation, the status bar appears automatically.
+Claude Code runs your configured `pulse` command on lifecycle events and pipes session JSON on stdin.
 
-## Configuration
+## Icons and terminals
 
-Edit `~/.claude/pulse/config.json` to customize:
+Default `iconSet` is **`text`**: bracket tags such as `[M]`, `[G]`, separators use Unicode **BOX DRAWINGS LIGHT VERTICAL** (U+2502, renders like a vertical rule). No Nerd Fonts required.
+
+Optional **`iconSet`: `"nerd"`** substitutes Nerd Font / Powerline glyphs; use only if your terminal uses a patched font, or icons may render as tofu.
+
+## Third-party API keys (account usage)
+
+Keys are **not** read from `~/.claude/pulse/api-keys.json`. Pulse merges the `env` objects from Claude Code settings in this order (each file overrides the previous):
+
+1. `~/.claude/settings.json`
+2. `~/.claude/settings.local.json`
+3. `<cwd>/.claude/settings.json`
+4. `<cwd>/.claude/settings.local.json`
+
+For each variable, **`process.env` wins** when set.
+
+| Provider | Environment variables |
+|----------|------------------------|
+| Zhipu (GLM) | `ZHIPU_API_KEY`, `ZHIPUAI_API_KEY`, or `BIGMODEL_API_KEY` |
+| DeepSeek | `DEEPSEEK_API_KEY` |
+| MiniMax | `MINIMAX_API_KEY`; optional `MINIMAX_GROUP_ID` |
+
+Optional base URL overrides: `ZHIPU_BASE_URL`, `DEEPSEEK_BASE_URL`, `MINIMAX_BASE_URL`, etc.
+
+## Configuration sample
+
+Edit `~/.claude/pulse/config.json`:
 
 ```json
 {
   "theme": "dark",
-  "separator": " │ ",
+  "separator": " \u2502 ",
+  "padding": 1,
+  "iconSet": "text",
   "modules": {
-    "model": { "enabled": true, "order": 1, "icon": "🧠" },
+    "model": { "enabled": true, "order": 1, "icon": "[M]" },
     "context": {
       "enabled": true,
       "order": 2,
       "showBar": true,
-      "barWidth": 12
+      "barWidth": 12,
+      "icon": "[C]"
     },
     "git": {
       "enabled": true,
       "order": 3,
       "showUpstream": false
     },
-    "cost": { "enabled": true, "order": 4, "icon": "💰" },
-    "rateLimits": { "enabled": false, "order": 9, "icon": "⚡" }
+    "cost": { "enabled": true, "order": 4, "icon": "[$]" },
+    "accountUsage": {
+      "enabled": true,
+      "order": 11,
+      "icon": "[A]",
+      "providers": ["zhipu", "deepseek"]
+    }
   }
 }
 ```
+
+Spacing: each separator is rendered as `repeat(padding) + separator + repeat(padding)` between segments.
+
+## Known limitations
+
+- The **`thirdPartyApi`** module only triggers background fetches today; rendered segments still come from **`accountUsage`** cache for GLM / DeepSeek style usage.
+- **MiniMax / StepFun / Xiaomi Mimo** account queries are stubs until endpoints are finalized.
 
 ## Performance
 
 - **P50:** 0.29ms
 - **P95:** 0.46ms
-- **P99:** <1ms
-- **Target:** <80ms ✅
+- **P99:** &lt;1ms
+- **Target:** &lt;80ms
 
 ## Development
 
+本地在本仓库根目录打开 **Claude Code**，并已提交 `.claude/settings.json`，将状态栏指向 `node bin/claude-pulse.js`。请先在同一目录执行：
+
 ```bash
-# Install dependencies
 npm install
-
-# Build TypeScript
 npm run build
+```
 
-# Run tests
-npx ts-node --project tsconfig.json test/**/*.test.ts
+然后在本目录启动 Claude Code（若使用 CLI，可附带从本目录加载插件：`claude --plugin-dir .`，以便使用 `.claude-plugin/` 下的命令文档）。
 
-# Run benchmark
+其余常用命令：
+
+```bash
+npm test
 node test/benchmark.ts
 ```
 
@@ -94,29 +133,18 @@ node test/benchmark.ts
 
 ```
 src/
-├── index.ts           # Main entry point
-├── parser/            # stdin JSON parsing
-├── extractors/        # Data extraction (git, model, context, etc.)
-├── formatters/        # Progress bars, duration, layout
-├── themes/            # 5 built-in themes
-├── config/            # Configuration loader
-└── utils/             # Cache, git, ANSI colors
+├── index.ts           # Main stdin driver
+├── parser/            # stdin JSON
+├── extractors/        # model, git, context, billing helpers
+├── formatters/        # layout with separator + padding
+├── themes/            # builtins + nerd overlay
+├── config/            # config merge
+└── utils/             # cache, ansi, Claude settings env merge
 ```
 
-## Zero Dependencies
+## Dependencies
 
-Production code uses **zero third-party npm packages**. All functionality is implemented with Node.js built-in modules:
-- `fs`, `path`, `os` - file operations
-- `child_process` - git commands
-- `https`, `http` - third-party API queries
-- `readline` - transcript parsing
-
-## Cross-Platform
-
-Tested and working on:
-- Windows (PowerShell, Git Bash, Windows Terminal)
-- macOS (iTerm2, Terminal.app)
-- Linux (GNOME Terminal, bash)
+The status line **`src/index.ts`** path uses Node.js built-ins only. The **`claude-pulse` CLI** (install/theme/config commands) adds **`commander`**.
 
 ## License
 

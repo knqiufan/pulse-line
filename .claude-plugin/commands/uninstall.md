@@ -26,7 +26,6 @@ claude-pulse uninstall
 - Configuration directory: `~/.claude/pulse/`
 - Config file: `~/.claude/pulse/config.json`
 - Cache files: `~/.claude/pulse/cache/`
-- API keys: `~/.claude/pulse/api-keys.json`
 
 ## Complete Removal
 
@@ -36,6 +35,8 @@ To completely remove all traces of claude-pulse:
 claude-pulse uninstall
 rm -rf ~/.claude/pulse/
 ```
+
+Note: Third-party credentials should live under Claude Code `settings.json` / `settings.local.json` `env`; removing `~/.claude/pulse/` does **not** remove those entries.
 
 ## Reinstallation
 

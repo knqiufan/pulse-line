@@ -2,12 +2,17 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import type { Theme } from '../types/theme';
 
 export interface DurationSegment {
   text: string;
 }
 
-export function extractSessionDuration(sessionId: string, sessionPath: string): DurationSegment | null {
+export function extractSessionDuration(
+  _sessionId: string,
+  sessionPath: string,
+  theme: Theme
+): DurationSegment | null {
   try {
     if (!fs.existsSync(sessionPath)) return null;
     const stat = fs.statSync(sessionPath);
@@ -16,16 +21,18 @@ export function extractSessionDuration(sessionId: string, sessionPath: string): 
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
 
-    let text: string;
+    let inner: string;
     if (hours > 0) {
-      text = `${hours}h ${minutes % 60}m`;
+      inner = `${hours}h ${minutes % 60}m`;
     } else if (minutes > 0) {
-      text = `${minutes}m ${seconds % 60}s`;
+      inner = `${minutes}m ${seconds % 60}s`;
     } else {
-      text = `${seconds}s`;
+      inner = `${seconds}s`;
     }
 
-    return { text: `⏱️ ${text}` };
+    const ic = theme.components.duration.icon;
+    const glyph = theme.components.duration.showIcon !== false && ic ? `${ic} ` : '';
+    return { text: `${glyph}${inner}` };
   } catch {
     return null;
   }

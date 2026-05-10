@@ -11,19 +11,18 @@ import * as path from 'path';
 import * as os from 'os';
 
 test('extractThinking should detect thinking mode', () => {
-  const result = extractThinking({ thinking: { enabled: true } });
+  const result = extractThinking({ thinking: { enabled: true } }, darkTheme);
   assert.ok(result);
-  assert.strictEqual(result.text, '🤔 on');
+  assert.strictEqual(result!.text, '[Think] on');
 });
 
 test('extractThinking should return null when not enabled', () => {
-  const result = extractThinking({});
+  const result = extractThinking({}, darkTheme);
   assert.strictEqual(result, null);
 });
 
 test('extractMcpStatus should detect MCP servers', () => {
-  const result = extractMcpStatus();
-  // May or may not find servers, just shouldn't crash
+  const result = extractMcpStatus(darkTheme);
   assert.ok(result === null || typeof result.text === 'string');
 });
 
@@ -39,9 +38,9 @@ test('extractTurns should count transcript entries', () => {
   fs.writeFileSync(tmpFile, lines.join('\n'));
 
   try {
-    const result = extractTurns(tmpFile);
+    const result = extractTurns(tmpFile, darkTheme);
     assert.ok(result);
-    assert.strictEqual(result.text, '💬 4 turns');
+    assert.strictEqual(result!.text, '[N] 4 turns');
   } finally {
     fs.unlinkSync(tmpFile);
   }
@@ -52,7 +51,7 @@ test('extractTurns should return null for empty transcript', () => {
   fs.writeFileSync(tmpFile, '');
 
   try {
-    const result = extractTurns(tmpFile);
+    const result = extractTurns(tmpFile, darkTheme);
     assert.strictEqual(result, null);
   } finally {
     fs.unlinkSync(tmpFile);
@@ -60,6 +59,6 @@ test('extractTurns should return null for empty transcript', () => {
 });
 
 test('extractTurns should return null for non-existent file', () => {
-  const result = extractTurns('/tmp/nonexistent-file-12345.jsonl');
+  const result = extractTurns('/tmp/nonexistent-file-12345.jsonl', darkTheme);
   assert.strictEqual(result, null);
 });
