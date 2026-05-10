@@ -84,6 +84,10 @@ export function validateConfig(config: PulseConfig): string[] {
     errors.push('padding must be between 0 and 10');
   }
 
+  if (config.iconSet !== 'nerd' && config.iconSet !== 'text') {
+    errors.push('iconSet must be "nerd" or "text"');
+  }
+
   const orders = Object.values(config.modules)
     .filter((m: any) => m.enabled)
     .map((m: any) => m.order);

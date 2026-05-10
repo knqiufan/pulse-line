@@ -1,1 +1,0 @@
-{"version":3,"file":"output-style.js","sourceRoot":"","sources":["../../src/extractors/output-style.ts"],"names":[],"mappings":";AAAA,iCAAiC;;AAMjC,gDAIC;AAJD,SAAgB,kBAAkB,CAAC,KAAyC;IAC1E,MAAM,IAAI,GAAG,KAAK,CAAC,YAAY,EAAE,IAAI,CAAC;IACtC,IAAI,CAAC,IAAI,IAAI,IAAI,KAAK,SAAS;QAAE,OAAO,IAAI,CAAC;IAC7C,OAAO,EAAE,IAAI,EAAE,MAAM,IAAI,EAAE,EAAE,CAAC;AAChC,CAAC"}

@@ -19,7 +19,7 @@ export function extractGit(cwd: string, sessionId: string, theme: Theme): GitSeg
     gitInfo = cached;
   } else {
     gitInfo = getGitInfo(cwd);
-    saveSessionCache(sessionId, 'git', gitInfo, 5 * 60 * 1000); // 5 min TTL
+    saveSessionCache(sessionId, 'git', gitInfo, 30 * 1000); // 30 sec TTL for branch
   }
 
   return renderGit(gitInfo, theme);

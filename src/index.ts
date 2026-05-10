@@ -17,6 +17,8 @@ import {
   extractThinking,
   extractOutputStyle,
   extractThirdPartyApi,
+  extractAccountUsageSync,
+  refreshAccountUsage,
   createDefaultApiKeysConfig
 } from './extractors';
 import {
@@ -60,8 +62,8 @@ function main() {
       const ctx = extractContext(input);
       const barWidth = modules.context.barWidth || 12;
       const bar = renderProgressBar(ctx.percentage, barWidth);
-      const icon = modules.context.icon || '📊';
-      const ctxText = `${icon} ${bar} ${ctx.percentage.toFixed(0)}%`;
+      const ctxIcon = modules.context.icon || '📊';
+      const ctxText = `${ctxIcon} ${bar} ${ctx.percentage.toFixed(0)}%`;
       segments.push({
         text: colorize(theme.colors.success, ctxText),
         separator: theme.separator.left
@@ -157,6 +159,22 @@ function main() {
           separator: theme.separator.left
         });
       }
+    }
+
+    // Account usage (sync render + async refresh)
+    if (modules.accountUsage.enabled) {
+      const cachedResults = extractAccountUsageSync(modules.accountUsage, theme);
+      for (const result of cachedResults) {
+        const usageIcon = modules.accountUsage.icon || result.icon;
+        segments.push({
+          text: colorize(result.fg, `${usageIcon} ${result.text}`),
+          separator: theme.separator.left
+        });
+      }
+
+      // Trigger background refresh
+      refreshAccountUsage(modules.accountUsage, theme, config.advanced.cacheTTL)
+        .catch((err: Error) => debug('Account usage refresh error:', err));
     }
 
     // MCP status

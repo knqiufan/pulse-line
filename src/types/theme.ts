@@ -38,6 +38,7 @@ export interface Theme {
     mcpStatus: ComponentStyle;
     thinking: ComponentStyle;
     outputStyle: ComponentStyle;
+    accountUsage: ComponentStyle;
     separator: ComponentStyle;
   };
 }

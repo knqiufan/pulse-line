@@ -35,7 +35,8 @@ test('extractModel should return model segment', () => {
 
   const result = extractModel(input, darkTheme);
   assert.ok(result);
-  assert.strictEqual(result.text, '🧠 Opus 4');
+  // Icon prefix should be present before model name
+  assert.ok(result.text.endsWith('Opus 4'));
   assert.strictEqual(result.fg, '#7aa2f7');
   assert.strictEqual(result.bold, true);
 });

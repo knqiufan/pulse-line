@@ -5,6 +5,7 @@ export interface PulseConfig {
   separator: string;
   padding: number;
   refreshInterval: number;
+  iconSet: 'nerd' | 'text';
   modules: {
     model: ModuleConfig;
     context: ContextModuleConfig;
@@ -20,6 +21,7 @@ export interface PulseConfig {
     thinking: ModuleConfig;
     outputStyle: ModuleConfig;
     thirdPartyApi: ThirdPartyApiConfig;
+    accountUsage: AccountUsageModuleConfig;
   };
   advanced: {
     cacheEnabled: boolean;
@@ -54,11 +56,16 @@ export interface ThirdPartyApiConfig extends ModuleConfig {
   providers?: string[];
 }
 
+export interface AccountUsageModuleConfig extends ModuleConfig {
+  providers?: string[];
+}
+
 export const DEFAULT_CONFIG: PulseConfig = {
   theme: 'dark',
   separator: ' │ ',
   padding: 1,
   refreshInterval: 5,
+  iconSet: 'nerd',
   modules: {
     model: { enabled: true, order: 1, icon: '🧠' },
     context: {
@@ -82,10 +89,11 @@ export const DEFAULT_CONFIG: PulseConfig = {
     cacheRatio: { enabled: false, order: 8, icon: '📦' },
     rateLimits: { enabled: false, order: 9, icon: '⚡', showCountdown: true },
     weeklyQuota: { enabled: false, order: 10, icon: '📅', showCountdown: true },
-    mcpStatus: { enabled: false, order: 11, icon: '🔌' },
-    thinking: { enabled: false, order: 12, icon: '🤔' },
-    outputStyle: { enabled: false, order: 13, icon: '📝' },
-    thirdPartyApi: { enabled: false, order: 14, icon: '🔗', providers: [] }
+    accountUsage: { enabled: true, order: 11, icon: '🔗', providers: ['zhipu', 'deepseek', 'minimax'] },
+    mcpStatus: { enabled: false, order: 12, icon: '🔌' },
+    thinking: { enabled: false, order: 13, icon: '🤔' },
+    outputStyle: { enabled: false, order: 14, icon: '📝' },
+    thirdPartyApi: { enabled: false, order: 15, icon: '🔗', providers: [] }
   },
   advanced: {
     cacheEnabled: true,
