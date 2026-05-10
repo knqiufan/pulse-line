@@ -5,8 +5,8 @@ const args = process.argv.slice(2);
 
 if (args.length === 0 && !process.stdin.isTTY) {
   // No arguments and stdin provided -> render pulse
-  require('../dist/index.js');
+  require('../dist/src/index.js');
 } else {
   // Has arguments -> CLI mode
-  require('../dist/cli.js');
+  require('../dist/src/cli.js');
 }

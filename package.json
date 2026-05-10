@@ -2,7 +2,7 @@
   "name": "claude-pulse",
   "version": "1.0.0",
   "description": "Customizable status bar for Claude Code",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "bin": {
     "claude-pulse": "./bin/claude-pulse.js"
   },
