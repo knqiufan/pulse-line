@@ -15,7 +15,9 @@ import {
   extractSessionDuration,
   extractTurns,
   extractThinking,
-  extractOutputStyle
+  extractOutputStyle,
+  extractThirdPartyApi,
+  createDefaultApiKeysConfig
 } from './extractors';
 import {
   renderLayout,
@@ -189,6 +191,19 @@ function main() {
           text: colorize(theme.colors.muted, `${icon} ${style.text}`),
           separator: theme.separator.left
         });
+      }
+    }
+
+    // Third-party API usage (async, fire and forget)
+    if (modules.thirdPartyApi.enabled) {
+      const providers = modules.thirdPartyApi.providers || [];
+      if (providers.length > 0) {
+        extractThirdPartyApi(providers, theme, config.advanced.cacheTTL)
+          .then(results => {
+            // Results cached for later renders
+            debug(`Third-party API query complete: ${results.length} providers`);
+          })
+          .catch(err => debug('Third-party API query error:', err));
       }
     }
 
