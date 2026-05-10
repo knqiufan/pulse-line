@@ -41,7 +41,7 @@ Each module in the `modules` section has the following properties:
 
 **duration**, **workspace**, **turns**, **cacheRatio**, **thinking**, **rateLimits**, **weeklyQuota**, **mcpStatus**, **outputStyle** — bracket tags `[T]` … `[S]` in defaults (see bundled `pulse-config.ts`).
 
-**accountUsage** — Zhipu / DeepSeek quotas; keys from merged Claude **`settings*.json`** `env` plus `process.env` (no `pulse/api-keys.json`).
+**accountUsage** — Zhipu / DeepSeek quotas via merged **`settings*.json`** `env` + `process.env`. For Claude Code routed through **`ANTHROPIC_BASE_URL` → `*.bigmodel.cn`**, GLM quotas use **`ANTHROPIC_AUTH_TOKEN`** (Anthropic-compat) when classic `ZHIPU_*` vars are absent.
 
 **thirdPartyApi** — optional HTTP prefetch; rendered usage primarily via **`accountUsage`** cache.
 
@@ -52,20 +52,27 @@ Each module in the `modules` section has the following properties:
 
 With **`iconSet`: `"text"`**, if your `config.json` still has old Nerd/PUA characters in `modules.*.icon` or `separator`, Pulse **replaces** them with the bundled ASCII defaults so terminals without patched fonts do not show replacement glyphs (tofu).
 
+Config files saved **without** `schemaVersion` run a **one‑time** upgrade first load (`iconSet: nerd → text`, then `schemaVersion: 3` is written). Set `iconSet` to `nerd` again only if your terminal ships a patched Nerd Font.
+
 ## Model name on the status bar
 
-The model segment label is resolved in this order (**first non-empty wins**):
+The model segment label resolves as follows (**first non-empty wins**):
 
-1. **`process.env`**: `PULSE_MODEL_DISPLAY`, `CLAUDE_CODE_MODEL_DISPLAY`, `CLAUDE_MODEL`, `ANTHROPIC_MODEL`
-2. The same keys from merged Claude **`settings*.json`** `env` (global then project; see account usage docs)
-3. `model.display_name` from Claude Code’s stdin JSON
+1. **Explicit overrides:** `PULSE_MODEL_DISPLAY`, `CLAUDE_CODE_MODEL_DISPLAY` (`process.env` and merged Claude `settings*.json`).
+2. **Tier routing:** from `model.id` / `model.display_name` pick **Opus / Sonnet / Haiku**, then read **`ANTHROPIC_DEFAULT_OPUS_MODEL`**, **`…_SONNET_MODEL`**, or **`…_HAIKU_MODEL`** respectively (same precedence as overrides).
+3. **Global fallback:** `CLAUDE_MODEL`, `ANTHROPIC_MODEL`.
+4. **`model.display_name`** from stdin snapshot.
+
+When Claude Code lists “Opus 4.x” but routing uses **`ANTHROPIC_DEFAULT_OPUS_MODEL: glm‑5.x`**, the bar shows **`glm‑5.x`**.
 
 Example in `~/.claude/settings.json`:
 
 ```json
 {
   "env": {
-    "PULSE_MODEL_DISPLAY": "Sonnet 4.6"
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-5.1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-5",
+    "ANTHROPIC_MODEL": "glm-5.1"
   }
 }
 ```

@@ -6,6 +6,8 @@ export interface PulseConfig {
   padding: number;
   refreshInterval: number;
   iconSet: 'nerd' | 'text';
+  /** Bumped when a one-time default migration applies (omit in older files). */
+  schemaVersion?: number;
   modules: {
     model: ModuleConfig;
     context: ContextModuleConfig;
@@ -66,6 +68,7 @@ export const DEFAULT_CONFIG: PulseConfig = {
   padding: 1,
   refreshInterval: 5,
   iconSet: 'text',
+  schemaVersion: 3,
   modules: {
     model: { enabled: true, order: 1, icon: '[M]' },
     context: {

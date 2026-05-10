@@ -1,29 +1,56 @@
 // src/utils/model-display-env.ts
 
-import { loadMergedClaudeEnv, firstNonEmptyEnv } from './claude-settings-env';
+import { loadMergedClaudeEnv, resolveEnvKey, firstNonEmptyEnv } from './claude-settings-env';
 
-/** Env keys scanned (process.env overrides merged Settings env). Highest priority first-ish via list order inside firstNonEmptyEnv. */
-const MODEL_DISPLAY_ENV_KEYS = [
-  'PULSE_MODEL_DISPLAY',
-  'CLAUDE_CODE_MODEL_DISPLAY',
-  'CLAUDE_MODEL',
-  'ANTHROPIC_MODEL'
-];
+/** User override (highest priority). */
+const MODEL_EXPLICIT_ENV_KEYS = ['PULSE_MODEL_DISPLAY', 'CLAUDE_CODE_MODEL_DISPLAY'] as const;
+
+/** When tier env is unset, use these before stdin display_name. */
+const MODEL_GLOBAL_ENV_KEYS = ['CLAUDE_MODEL', 'ANTHROPIC_MODEL'] as const;
+
+export interface ModelIdentity {
+  id?: string;
+  display_name?: string;
+}
+
+function inferTierEnvKey(id: string | undefined, displayName: string | undefined): string | null {
+  const lowId = (id || '').toLowerCase();
+  const lowDisp = (displayName || '').toLowerCase();
+
+  if (lowId.includes('opus') || /\bopus\b/.test(lowDisp)) {
+    return 'ANTHROPIC_DEFAULT_OPUS_MODEL';
+  }
+  if (lowId.includes('sonnet') || /\bsonnet\b/.test(lowDisp)) {
+    return 'ANTHROPIC_DEFAULT_SONNET_MODEL';
+  }
+  if (lowId.includes('haiku') || /\bhaiku\b/.test(lowDisp)) {
+    return 'ANTHROPIC_DEFAULT_HAIKU_MODEL';
+  }
+  return null;
+}
 
 /**
- * Resolved label for status bar model segment.
- * When any listed env key is set in Claude global/project settings or process env, use it.
- * Otherwise falls back to stdin snapshot from Claude Code.
+ * Status bar model label: explicit env, then Claude tier → ANTHROPIC_DEFAULT_* ,
+ * then CLAUDE_MODEL / ANTHROPIC_MODEL, then stdin snapshot.
  */
 export function resolveModelDisplayLabel(
   cwd: string,
-  stdinDisplayName: string | undefined
+  model: ModelIdentity | undefined
 ): string | null {
   const merged = loadMergedClaudeEnv(cwd);
-  const fromEnv = firstNonEmptyEnv(MODEL_DISPLAY_ENV_KEYS, merged)?.trim();
 
-  if (fromEnv) return fromEnv;
+  const explicit = firstNonEmptyEnv([...MODEL_EXPLICIT_ENV_KEYS], merged)?.trim();
+  if (explicit) return explicit;
 
-  const fromStdin = stdinDisplayName?.trim();
-  return fromStdin || null;
+  const tierKey = inferTierEnvKey(model?.id, model?.display_name);
+  if (tierKey) {
+    const routed = resolveEnvKey(tierKey, merged)?.trim();
+    if (routed) return routed;
+  }
+
+  const global = firstNonEmptyEnv([...MODEL_GLOBAL_ENV_KEYS], merged)?.trim();
+  if (global) return global;
+
+  const stdin = model?.display_name?.trim();
+  return stdin || null;
 }

@@ -12,10 +12,7 @@ export interface ModelSegment {
 }
 
 export function extractModel(input: PulseInput, theme: Theme): ModelSegment | null {
-  const modelName = resolveModelDisplayLabel(
-    input.cwd,
-    input.model?.display_name
-  );
+  const modelName = resolveModelDisplayLabel(input.cwd, input.model);
   if (!modelName) return null;
 
   const style = theme.components.model;

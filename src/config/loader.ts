@@ -8,35 +8,64 @@ import { loadSessionCache, saveSessionCache } from '../utils/cache';
 import type { PulseConfig } from '../types/pulse-config';
 import { DEFAULT_CONFIG } from '../types/pulse-config';
 import { sanitizePulseDisplayConfig } from '../utils/display-sanitize';
+import { upgradePulseSchemaIfNeeded } from './migrate-config';
+
+function persistIfMigrated(
+  config: PulseConfig,
+  configPath: string,
+  migrated: boolean
+): void {
+  if (!migrated || !fs.existsSync(configPath)) return;
+  saveConfig(config);
+}
 
 export function loadConfig(): PulseConfig {
   const configPath = getConfigPath();
-  const cacheKey = 'pulse-config-v2';
+  const cacheKey = 'pulse-config-v4';
 
   const cached = loadSessionCache<PulseConfig>('global', cacheKey);
   if (cached) {
+    const migrated = upgradePulseSchemaIfNeeded(cached);
     sanitizePulseDisplayConfig(cached);
+    persistIfMigrated(cached, configPath, migrated);
+    saveSessionCache('global', cacheKey, cached, 60 * 1000);
     debug('Config loaded from cache');
     return cached;
   }
 
   let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG)) as PulseConfig;
-  sanitizePulseDisplayConfig(config);
+  const hadFile = fs.existsSync(configPath);
 
-  if (fs.existsSync(configPath)) {
+  if (hadFile) {
     try {
       const raw = fs.readFileSync(configPath, 'utf8');
-      const userConfig = JSON.parse(raw);
+      const userConfig = JSON.parse(raw) as PulseConfig &
+        Record<string, unknown>;
+
       config = deepMerge(config, userConfig);
-      sanitizePulseDisplayConfig(config);
+
+      const userHasSchema = Object.prototype.hasOwnProperty.call(
+        userConfig,
+        'schemaVersion'
+      );
+      if (!userHasSchema) {
+        delete config.schemaVersion;
+      }
+
       debug('Config loaded from file:', configPath);
     } catch (err) {
       debug('Config load error, using defaults:', err);
     }
-  } else {
-    // First run - create default config
+  }
+
+  const migrated = upgradePulseSchemaIfNeeded(config);
+  sanitizePulseDisplayConfig(config);
+
+  if (!hadFile) {
     saveConfig(config);
     debug('Default config created at:', configPath);
+  } else {
+    persistIfMigrated(config, configPath, migrated);
   }
 
   // Cache config for 1 minute

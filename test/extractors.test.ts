@@ -2,6 +2,9 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { extractModel } from '../src/extractors/model';
 import { extractContext } from '../src/extractors/context';
 import { extractCost } from '../src/extractors/cost';
@@ -42,11 +45,15 @@ test('extractModel should return model segment', () => {
 });
 
 test('extractModel should return null for empty display_name', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pulse-ext-'));
   const keys = [
     'PULSE_MODEL_DISPLAY',
     'CLAUDE_CODE_MODEL_DISPLAY',
     'CLAUDE_MODEL',
-    'ANTHROPIC_MODEL'
+    'ANTHROPIC_MODEL',
+    'ANTHROPIC_DEFAULT_OPUS_MODEL',
+    'ANTHROPIC_DEFAULT_SONNET_MODEL',
+    'ANTHROPIC_DEFAULT_HAIKU_MODEL'
   ] as const;
   const saved: Record<string, string | undefined> = {};
   for (const k of keys) {
@@ -55,7 +62,8 @@ test('extractModel should return null for empty display_name', () => {
   }
   try {
     const input = fullInput({
-      model: { id: 'claude-opus-4', display_name: '' }
+      cwd: dir,
+      model: { id: 'custom-unknown-id', display_name: '' }
     });
 
     const result = extractModel(input, darkTheme);
@@ -66,6 +74,26 @@ test('extractModel should return null for empty display_name', () => {
       if (v === undefined) delete process.env[k];
       else process.env[k] = v;
     }
+  }
+});
+
+test('extractModel maps Opus tier to ANTHROPIC_DEFAULT_OPUS_MODEL', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pulse-ext-'));
+  const k = 'ANTHROPIC_DEFAULT_OPUS_MODEL';
+  const prev = process.env[k];
+  process.env[k] = 'glm-5.1';
+  try {
+    const input = fullInput({
+      cwd: dir,
+      model: { id: 'claude-opus-4-7', display_name: 'Opus 4.7 (1M context)' }
+    });
+    const result = extractModel(input, darkTheme);
+    assert.ok(result);
+    assert.ok(result!.text.includes('glm-5.1'));
+    assert.ok(!result!.text.includes('Opus 4.7'));
+  } finally {
+    if (prev === undefined) delete process.env[k];
+    else process.env[k] = prev;
   }
 });
 

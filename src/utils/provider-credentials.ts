@@ -33,10 +33,50 @@ const BASE_ENV_KEYS: Record<string, string[]> = {
   xiaomi_mimo: ['XIAOMI_MIMO_BASE_URL']
 };
 
-export function resolveProviderCredentials(
-  provider: string,
-  merged: MergedEnvMap
-): ResolvedProviderCred | null {
+function zhipuBaseFromMerged(merged: MergedEnvMap): string {
+  let baseUrl = DEFAULT_BASE_URL.zhipu;
+  const custom = firstNonEmptyEnv(BASE_ENV_KEYS.zhipu, merged);
+  if (custom) baseUrl = custom.replace(/\/$/, '');
+  return baseUrl;
+}
+
+function resolveZhipuClassic(merged: MergedEnvMap): ResolvedProviderCred | null {
+  const keys = ENV_KEYS.zhipu;
+  const apiKey = firstNonEmptyEnv(keys, merged);
+  if (!apiKey) return null;
+  return { apiKey, baseUrl: zhipuBaseFromMerged(merged) };
+}
+
+/**
+ * Claude Code + 智谱：仅用 ANTHROPIC_* 走 Anthropic 兼容端点时，用量 API 仍走 open.bigmodel.cn 根域。
+ */
+function resolveZhipuViaAnthropicEnv(merged: MergedEnvMap): ResolvedProviderCred | null {
+  const baseRaw = firstNonEmptyEnv(['ANTHROPIC_BASE_URL'], merged);
+  if (!baseRaw) return null;
+
+  let host = '';
+  try {
+    host = new URL(baseRaw).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+  if (!host.includes('bigmodel.cn')) return null;
+
+  const apiKey = firstNonEmptyEnv(['ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_API_KEY'], merged);
+  if (!apiKey) return null;
+
+  let root = '';
+  try {
+    const u = new URL(baseRaw);
+    root = `${u.protocol}//${u.hostname}`.replace(/\/$/, '');
+  } catch {
+    return null;
+  }
+
+  return { apiKey, baseUrl: root };
+}
+
+function resolveGeneric(provider: string, merged: MergedEnvMap): ResolvedProviderCred | null {
   const keys = ENV_KEYS[provider];
   if (!keys) return null;
 
@@ -57,4 +97,14 @@ export function resolveProviderCredentials(
   }
 
   return { apiKey, baseUrl, groupId };
+}
+
+export function resolveProviderCredentials(
+  provider: string,
+  merged: MergedEnvMap
+): ResolvedProviderCred | null {
+  if (provider === 'zhipu') {
+    return resolveZhipuClassic(merged) ?? resolveZhipuViaAnthropicEnv(merged);
+  }
+  return resolveGeneric(provider, merged);
 }
