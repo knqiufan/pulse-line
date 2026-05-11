@@ -5,7 +5,7 @@ import type { Theme } from '../../types/theme';
 export const oceanTheme: Theme = {
   meta: {
     name: 'Ocean',
-    author: 'claude-pulse',
+    author: 'pulse-line',
     version: '1.0.0',
     description: 'Deep ocean blue palette'
   },

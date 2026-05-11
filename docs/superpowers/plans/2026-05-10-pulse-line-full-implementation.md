@@ -1,4 +1,4 @@
-# Claude Pulse 完整实现计划
+# Pulse Line 完整实现计划
 
 > **For agentic workers:** 本计划涵盖 Phase 1~Phase 8 所有功能，采用增量交付策略，每个 phase 都有明确的完成标志。
 
@@ -11,7 +11,7 @@
 ## 项目文件结构
 
 ```
-claude-pulse/
+pulse-line/
 ├── src/
 │   ├── index.ts                    # 总入口: stdin → 协调各模块 → stdout
 │   ├── types/
@@ -57,7 +57,7 @@ claude-pulse/
 │       ├── fs.ts                   # 跨平台文件操作
 │       └── logger.ts               # 调试日志
 ├── bin/
-│   └── claude-pulse.js             # CLI 可执行入口
+│   └── pulse-line.js             # CLI 可执行入口
 ├── themes/                         # 自定义主题目录
 ├── test/
 │   ├── fixtures/
@@ -88,12 +88,12 @@ claude-pulse/
 
 ```json
 {
-  "name": "claude-pulse",
+  "name": "pulse-line",
   "version": "1.0.0",
   "description": "Customizable status bar for Claude Code",
   "main": "dist/index.js",
   "bin": {
-    "claude-pulse": "./bin/claude-pulse.js"
+    "pulse-line": "./bin/pulse-line.js"
   },
   "scripts": {
     "build": "tsc",
@@ -995,7 +995,7 @@ import type { Theme } from '../../types/theme';
 export const darkTheme: Theme = {
   meta: {
     name: 'Deep Dark',
-    author: 'claude-pulse',
+    author: 'pulse-line',
     version: '1.0.0',
     description: 'Professional dark theme'
   },
@@ -1069,7 +1069,7 @@ git commit -m "feat: implement dark theme and theme loader"
 
 **Files:**
 - Create: `src/index.ts`
-- Create: `bin/claude-pulse.js`
+- Create: `bin/pulse-line.js`
 
 - [ ] **Step 1: 主入口**
 
@@ -1205,7 +1205,7 @@ Expected: 输出包含 Opus 4、进度条 65%、成本 $0.0420
 - [ ] **Step 5: 提交**
 
 ```bash
-git add src/index.ts bin/claude-pulse.js test/fixtures/sample-input.json
+git add src/index.ts bin/pulse-line.js test/fixtures/sample-input.json
 git commit -m "feat: implement main entry point with core rendering pipeline"
 ```
 
@@ -1748,7 +1748,7 @@ git add src/config/ test/config.test.ts && git commit -m "feat: implement config
 ```typescript
 // 示例：light.ts（极简白）
 export const lightTheme: Theme = {
-  meta: { name: 'Minimal Light', author: 'claude-pulse', version: '1.0.0', description: 'Clean light theme' },
+  meta: { name: 'Minimal Light', author: 'pulse-line', version: '1.0.0', description: 'Clean light theme' },
   separator: { left: ' │ ', right: '', color: '#a1a1aa' },
   colors: {
     background: 'transparent',
@@ -1967,18 +1967,18 @@ import * as { execSync } from 'child_process';
 const program = new Command();
 
 program
-  .name('claude-pulse')
+  .name('pulse-line')
   .description('Customizable status bar for Claude Code')
   .version('1.0.0');
 
 program
   .command('install')
-  .description('Install claude-pulse to Claude Code settings')
+  .description('Install pulse-line to Claude Code settings')
   .action(install);
 
 program
   .command('uninstall')
-  .description('Uninstall claude-pulse')
+  .description('Uninstall pulse-line')
   .action(uninstall);
 
 program
@@ -2030,7 +2030,7 @@ function uninstall() {
 ```json
 {
   "bin": {
-    "claude-pulse": "./bin/claude-pulse.js"
+    "pulse-line": "./bin/pulse-line.js"
   },
   "dependencies": {
     "commander": "^12.0.0"
@@ -2072,11 +2072,11 @@ npm run build && node dist/index.js --help
 
 ```json
 {
-  "name": "claude-pulse",
+  "name": "pulse-line",
   "description": "Customizable status bar for Claude Code with multiple themes",
   "version": "1.0.0",
   "author": {
-    "name": "claude-pulse"
+    "name": "pulse-line"
   },
   "commands": [
     "./commands/install.md",
@@ -2099,7 +2099,7 @@ npm run build && node dist/index.js --help
 ```markdown
 ---
 name: pulse-config
-description: Configure claude-pulse status bar modules, themes, and layout
+description: Configure pulse-line status bar modules, themes, and layout
 ---
 
 # Pulse Configuration Guide
@@ -2319,7 +2319,7 @@ git add test/integration.test.ts && git commit -m "test: add integration and err
 - [ ] **Step 1: 编写 README**
 
 ```markdown
-# Claude Pulse
+# Pulse Line
 
 Customizable status bar for Claude Code CLI.
 
@@ -2336,8 +2336,8 @@ Customizable status bar for Claude Code CLI.
 ## Installation
 
 ```bash
-npm install -g claude-pulse
-claude-pulse install
+npm install -g pulse-line
+pulse-line install
 ```
 
 ## Usage

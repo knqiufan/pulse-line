@@ -5,7 +5,7 @@ import type { Theme } from '../../types/theme';
 export const darkTheme: Theme = {
   meta: {
     name: 'Deep Dark',
-    author: 'claude-pulse',
+    author: 'pulse-line',
     version: '1.0.0',
     description: 'Professional dark theme'
   },

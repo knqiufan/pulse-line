@@ -7,7 +7,7 @@ description: List all available status bar themes
 ## Command
 
 ```
-/claude-pulse:themes
+/pulse-line:themes
 ```
 
 ## Description
@@ -19,5 +19,5 @@ List all available themes for the status bar.
 Run the following shell command:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/claude-pulse.js" themes
+node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" themes
 ```

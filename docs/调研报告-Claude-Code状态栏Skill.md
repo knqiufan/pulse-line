@@ -472,7 +472,7 @@ duration = { fg = "muted", icon = "⏱️" }
 ### 5.2 TypeScript 实现架构
 
 ```
-claude-pulse/
+pulse-line/
 ├── package.json
 ├── tsconfig.json
 ├── src/
@@ -511,7 +511,7 @@ claude-pulse/
 │   ├── forest.toml
 │   └── ocean.toml
 ├── bin/
-│   └── claude-pulse.js  # 可执行入口
+│   └── pulse-line.js  # 可执行入口
 └── dist/                     # 编译输出
 ```
 
@@ -664,7 +664,7 @@ Claude Code 在 Windows 上运行，状态栏脚本需要兼容：
 // package.json
 {
   "bin": {
-    "claude-pulse": "./bin/claude-pulse.js"
+    "pulse-line": "./bin/pulse-line.js"
   },
   "scripts": {
     "build": "tsc",
@@ -679,7 +679,7 @@ Claude Code 在 Windows 上运行，状态栏脚本需要兼容：
 {
   "pulse": {
     "type": "command",
-    "command": "claude-pulse"
+    "command": "pulse-line"
   }
 }
 ```
@@ -712,7 +712,7 @@ function safeRender(value: string | null, fallback: string): string {
 **插件目录结构：**
 
 ```
-claude-pulse/
+pulse-line/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── commands/
@@ -739,14 +739,14 @@ claude-pulse/
 
 ```json
 {
-  "name": "claude-pulse",
+  "name": "pulse-line",
   "version": "1.0.0",
   "description": "Customizable status bar for Claude Code with multiple themes",
   "author": "Your Name",
-  "homepage": "https://github.com/yourname/claude-pulse",
+  "homepage": "https://github.com/yourname/pulse-line",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourname/claude-pulse"
+    "url": "https://github.com/yourname/pulse-line"
   },
   "keywords": ["pulse", "theme", "ui"],
   "license": "MIT",
@@ -768,18 +768,18 @@ Install the custom pulse for Claude Code.
 
 Steps:
 1. Check if Node.js is installed (run `node --version`)
-2. Run `npm install -g claude-pulse` or copy the script locally
+2. Run `npm install -g pulse-line` or copy the script locally
 3. Update `~/.claude/settings.json`:
    ```json
    {
      "pulse": {
        "type": "command",
-       "command": "claude-pulse",
+       "command": "pulse-line",
        "refreshInterval": 5
      }
    }
    ```
-4. Run `claude-pulse --init` to set up themes
+4. Run `pulse-line --init` to set up themes
 5. Inform the user to restart Claude Code or run `/clear`
 
 Verify installation by checking if the status bar appears at the bottom of the terminal.
@@ -820,8 +820,8 @@ Then restart Claude Code or run `/clear` to see changes.
 
 4. **公开 marketplace**：
    ```bash
-   /plugin marketplace add yourname/claude-pulse-marketplace
-   /plugin install claude-pulse@yourname/claude-pulse-marketplace
+   /plugin marketplace add yourname/pulse-line-marketplace
+   /plugin install pulse-line@yourname/pulse-line-marketplace
    ```
 
 5. **团队部署**：添加到项目 `.claude/settings.json`
@@ -831,12 +831,12 @@ Then restart Claude Code or run `/clear` to see changes.
        "my-team": {
          "source": {
            "source": "github",
-           "repo": "yourname/claude-pulse-marketplace"
+           "repo": "yourname/pulse-line-marketplace"
          }
        }
      },
      "plugins": {
-       "my-team.claude-pulse": {
+       "my-team.pulse-line": {
          "enabled": true
        }
      }
@@ -1080,7 +1080,7 @@ printf "${CYAN}%s${RESET} │ ${CTX_COLOR}%s %3d%%${RESET} │ ${MUTED}%s${RESET
 
 ```bash
 # 创建项目
-mkdir claude-pulse && cd claude-pulse
+mkdir pulse-line && cd pulse-line
 npm init -y
 
 # 安装依赖
@@ -1103,18 +1103,18 @@ cat > tsconfig.json << 'EOF'
   },
   "include": ["src/**/*"],
   "bin": {
-    "claude-pulse": "./dist/index.js"
+    "pulse-line": "./dist/index.js"
   }
 }
 EOF
 
 # 创建 bin 入口
 mkdir -p src bin
-cat > bin/claude-pulse.js << 'EOF'
+cat > bin/pulse-line.js << 'EOF'
 #!/usr/bin/env node
 require('../dist/index.js');
 EOF
-chmod +x bin/claude-pulse.js
+chmod +x bin/pulse-line.js
 
 # 编译
 npx tsc
@@ -1149,14 +1149,14 @@ npm login
 npm publish --access public
 
 # 用户安装
-npm install -g claude-pulse
+npm install -g pulse-line
 ```
 
 ### 9.5 发布为 Plugin
 
 ```bash
 # 1. 创建仓库
-gh repo create claude-pulse --public
+gh repo create pulse-line --public
 
 # 2. 推送代码
 git add . && git commit -m "feat: initial release"

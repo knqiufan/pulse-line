@@ -1,5 +1,5 @@
 ---
-description: Reload claude-pulse configuration
+description: Reload pulse-line configuration
 ---
 
 # Reload Configuration
@@ -7,7 +7,7 @@ description: Reload claude-pulse configuration
 ## Command
 
 ```
-/claude-pulse:reload
+/pulse-line:reload
 ```
 
 ## Description
@@ -19,5 +19,5 @@ Reload the configuration file manually. Useful when you've edited `~/.claude/pul
 Run the following shell command:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/claude-pulse.js" reload
+node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" reload
 ```

@@ -25,26 +25,26 @@ function saveAndInvalidate(config: import('./types/pulse-config').PulseConfig): 
 const program = new Command();
 
 program
-  .name('claude-pulse')
+  .name('pulse-line')
   .description('Customizable status bar for Claude Code')
   .version('1.0.0');
 
 program
   .command('install')
-  .description('Install claude-pulse to Claude Code settings')
+  .description('Install pulse-line to Claude Code settings')
   .action(() => {
     try {
       const pulseDir = getPulseDir();
       fs.mkdirSync(pulseDir, { recursive: true });
       saveConfig(loadConfig());
 
-      console.log('[OK] Claude Pulse installed successfully.');
+      console.log('[OK] Pulse Line installed successfully.');
       console.log('Config directory:', pulseDir);
       console.log('Edit config:', getConfigPath());
       console.log('\nNext steps:');
       console.log('1. Restart Claude Code');
       console.log('2. The status bar will appear automatically');
-      console.log('3. Run "claude-pulse theme <name>" to change theme');
+      console.log('3. Run "pulse-line theme <name>" to change theme');
     } catch (err) {
       console.error('[ERROR] Installation failed:', err instanceof Error ? err.message : err);
       process.exit(1);
@@ -53,10 +53,10 @@ program
 
 program
   .command('uninstall')
-  .description('Uninstall claude-pulse')
+  .description('Uninstall pulse-line')
   .action(() => {
     try {
-      console.log('[OK] Claude Pulse uninstalled');
+      console.log('[OK] Pulse Line uninstalled');
       console.log('Config preserved at:', getPulseDir());
       console.log('   Delete manually if needed');
     } catch (err) {

@@ -7,7 +7,7 @@ description: Disable a status bar module
 ## Command
 
 ```
-/claude-pulse:disable <module>
+/pulse-line:disable <module>
 ```
 
 ## Description
@@ -21,7 +21,7 @@ Available module IDs: `model`, `context`, `git`, `accountUsage`, `cost`, `durati
 Run the following shell command with the module name provided by the user:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/claude-pulse.js" disable <module>
+node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" disable <module>
 ```
 
 If the user did not provide a module name, list the available modules and ask which one they want to disable.

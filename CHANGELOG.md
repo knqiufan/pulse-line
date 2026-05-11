@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to claude-pulse will be documented in this file.
+All notable changes to pulse-line will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial release of claude-pulse
+- Initial release of pulse-line
 - Customizable status bar for Claude Code CLI
 - Five built-in themes: Dark, Light, Cyberpunk, Forest, Ocean
 - Core modules: model indicator, context usage, git branch, session cost

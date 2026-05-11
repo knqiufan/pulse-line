@@ -7,7 +7,7 @@ description: Switch display language (zh, en)
 ## Command
 
 ```
-/claude-pulse:language <lang>
+/pulse-line:language <lang>
 ```
 
 ## Description
@@ -21,7 +21,7 @@ Changes take effect immediately on the next status bar render.
 Run the following shell command with the language code provided by the user:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/claude-pulse.js" language <lang>
+node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" language <lang>
 ```
 
 If the user did not provide a language, ask which one they want: `zh` (Chinese) or `en` (English).

@@ -5,7 +5,7 @@ import type { Theme } from '../../types/theme';
 export const cyberpunkTheme: Theme = {
   meta: {
     name: 'Cyberpunk',
-    author: 'claude-pulse',
+    author: 'pulse-line',
     version: '1.0.0',
     description: 'Neon cyberpunk aesthetic'
   },

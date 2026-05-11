@@ -7,7 +7,7 @@ description: Clear all pulse cache files
 ## Command
 
 ```
-/claude-pulse:clear-cache
+/pulse-line:clear-cache
 ```
 
 ## Description
@@ -19,5 +19,5 @@ Clear all cached data for the pulse status bar, including API query results and 
 Run the following shell command:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/claude-pulse.js" clear-cache
+node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" clear-cache
 ```

@@ -35,7 +35,7 @@ const testInput = JSON.stringify({
 const ITERATIONS = 100;
 const times: number[] = [];
 
-console.log(`\n=== Claude Pulse Performance Benchmark ===`);
+console.log(`\n=== Pulse Line Performance Benchmark ===`);
 console.log(`Iterations: ${ITERATIONS}\n`);
 
 for (let i = 0; i < ITERATIONS; i++) {

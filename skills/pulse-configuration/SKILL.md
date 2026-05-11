@@ -1,12 +1,12 @@
 ---
-description: Configure claude-pulse modules, themes, and status bar customization
+description: Configure pulse-line modules, themes, and status bar customization
 ---
 
 # Pulse Configuration Skill
 
 ## Overview
 
-This skill provides guidance for configuring claude-pulse modules and themes to customize the Claude Code status bar according to your workflow needs.
+This skill provides guidance for configuring pulse-line modules and themes to customize the Claude Code status bar according to your workflow needs.
 
 ## Configuration File
 
@@ -14,7 +14,7 @@ Location: `~/.claude/pulse/config.json`
 
 Open in editor:
 ```bash
-claude-pulse config
+pulse-line config
 ```
 
 ## Module Configuration
@@ -86,8 +86,8 @@ Example in `~/.claude/settings.json`:
 Change theme via CLI:
 
 ```bash
-claude-pulse theme dark
-claude-pulse theme cyberpunk
+pulse-line theme dark
+pulse-line theme cyberpunk
 ```
 
 Or edit config file directly:
@@ -170,13 +170,13 @@ Quick CLI commands:
 
 ```bash
 # Enable a module
-claude-pulse enable rateLimits
+pulse-line enable rateLimits
 
 # Disable a module
-claude-pulse disable thinking
+pulse-line disable thinking
 
 # Reload to apply changes
-claude-pulse reload
+pulse-line reload
 ```
 
 ## Advanced Options
@@ -225,7 +225,7 @@ claude-pulse reload
 
 ### Config Not Applying
 
-1. Run `claude-pulse reload`
+1. Run `pulse-line reload`
 2. Restart Claude Code
 3. Verify config file is valid JSON
 
@@ -233,7 +233,7 @@ claude-pulse reload
 
 1. Check module is `"enabled": true`
 2. Verify `order` is a number (not string)
-3. Run `claude-pulse reload`
+3. Run `pulse-line reload`
 
 ### Performance Issues
 
@@ -245,7 +245,7 @@ claude-pulse reload
 
 1. Keep **`iconSet`** as **`"text"`** (default) unless the terminal font is Nerd-patched.
 2. Remove private-use / Powerline glyphs from `separator` and `modules.*.icon`, or let Pulse reset them automatically in text mode.
-3. Run `claude-pulse reload` or restart Claude Code after editing `config.json`.
+3. Run `pulse-line reload` or restart Claude Code after editing `config.json`.
 
 ## Best Practices
 
@@ -253,15 +253,15 @@ claude-pulse reload
 2. **Add gradually** - Test each new module
 3. **Customize icons** — short ASCII tags (for example `[M]`, `[ctx]`) keep columns aligned without emoji.
 4. **Use reload** - No need to restart Claude Code
-5. **Check config** - Use `claude-pulse config` to edit
+5. **Check config** - Use `pulse-line config` to edit
 
 ## Related Commands
 
-- `claude-pulse install` - Initial setup
-- `claude-pulse uninstall` - Remove plugin
-- `claude-pulse theme <name>` - Switch theme
-- `claude-pulse enable <module>` - Enable module
-- `claude-pulse disable <module>` - Disable module
-- `claude-pulse reload` - Apply changes
-- `claude-pulse config` - Edit config file
-- `claude-pulse themes` - List themes
+- `pulse-line install` - Initial setup
+- `pulse-line uninstall` - Remove plugin
+- `pulse-line theme <name>` - Switch theme
+- `pulse-line enable <module>` - Enable module
+- `pulse-line disable <module>` - Disable module
+- `pulse-line reload` - Apply changes
+- `pulse-line config` - Edit config file
+- `pulse-line themes` - List themes
