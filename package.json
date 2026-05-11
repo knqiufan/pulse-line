@@ -11,7 +11,7 @@
     "watch": "tsc -w",
     "start": "node dist/src/index.js",
     "dev": "ts-node src/index.ts",
-    "test": "node --test \"dist/test/**/*.test.js\"",
+    "test": "node scripts/test.js",
     "prepublishOnly": "npm run build"
   },
   "files": [
