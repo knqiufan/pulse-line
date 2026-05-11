@@ -11,6 +11,55 @@ export interface LayoutOptions {
   padding: number;
 }
 
+/** Strip ANSI escape sequences to measure visible character width. */
+function stripAnsi(str: string): string {
+  return str.replace(/\x1b\[[0-9;]*m/g, '');
+}
+
+/**
+ * Split a rendered status line into chunks that fit within `maxWidth`.
+ * Splits only at separator boundaries so individual segments stay intact.
+ */
+function wrapLine(line: string, maxWidth: number): string {
+  if (maxWidth <= 0) return line;
+
+  const visibleLen = stripAnsi(line).length;
+  if (visibleLen <= maxWidth) return line;
+
+  const parts: string[] = [];
+  // Split by the separator │ pattern (with surrounding ANSI codes and spaces)
+  const sepPattern = /((?:\x1b\[[0-9;]*m)*\s*│\s*(?:\x1b\[[0-9;]*m)*)/g;
+  const tokens = line.split(sepPattern);
+
+  let current = '';
+  let currentVisible = 0;
+
+  for (const token of tokens) {
+    const tokenVisible = stripAnsi(token).length;
+
+    if (currentVisible + tokenVisible > maxWidth && current.length > 0) {
+      parts.push(current);
+      // Skip leading separator on the new line
+      if (/^\s*│\s*$/.test(stripAnsi(token))) {
+        current = '';
+        currentVisible = 0;
+      } else {
+        current = token;
+        currentVisible = tokenVisible;
+      }
+    } else {
+      current += token;
+      currentVisible += tokenVisible;
+    }
+  }
+
+  if (current.length > 0) {
+    parts.push(current);
+  }
+
+  return parts.join('\n');
+}
+
 export function renderLayout(
   segments: LayoutSegment[],
   theme: Theme,
@@ -32,6 +81,15 @@ export function renderLayout(
     }
     result += segments[i].text;
   }
+
+  const termWidth =
+    process.stdout.columns ||
+    (process.env.COLUMNS ? parseInt(process.env.COLUMNS, 10) : 0) ||
+    0;
+  if (termWidth > 0) {
+    result = wrapLine(result, termWidth);
+  }
+
   return result;
 }
 

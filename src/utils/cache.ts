@@ -80,3 +80,16 @@ export function saveSessionCache<T>(sessionId: string, key: string, value: T, tt
     debug('Cache write failed:', err);
   }
 }
+
+export function removeSessionCacheKey(sessionId: string, key: string): void {
+  try {
+    const cachePath = getSessionCachePath(sessionId);
+    if (!fs.existsSync(cachePath)) return;
+    const raw = fs.readFileSync(cachePath, 'utf8');
+    const cache = JSON.parse(raw);
+    if (!(key in cache)) return;
+    delete cache[key];
+    fs.writeFileSync(cachePath, JSON.stringify(cache));
+    debug(`Cache key removed: ${sessionId}/${key}`);
+  } catch { /* ignore */ }
+}

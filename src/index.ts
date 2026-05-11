@@ -28,13 +28,14 @@ import { renderProgressBar } from './formatters/progress-bar';
 import { colorize } from './utils/ansi';
 import { debug } from './utils/logger';
 
-interface Segment {
+interface OrderedSegment {
+  order: number;
   text: string;
 }
 
 const HTTP_TIMEOUT_MS = 2000;
 
-function main() {
+async function main() {
   try {
     const input = parseStdinSync();
     const config = loadConfig();
@@ -43,15 +44,13 @@ function main() {
 
     debug('Rendering pulse for session:', input.session_id);
 
-    const segments: Segment[] = [];
+    const segments: OrderedSegment[] = [];
 
-    // Model (always enabled - core feature)
+    // Model
     if (modules.model.enabled) {
       const model = extractModel(input, theme);
       if (model) {
-        segments.push({
-          text: renderSegment(model)
-        });
+        segments.push({ order: modules.model.order, text: renderSegment(model) });
       }
     }
 
@@ -64,18 +63,41 @@ function main() {
         modules.context.icon ?? theme.components.context.icon ?? '';
       const tail = `${bar} ${ctx.percentage.toFixed(0)}%`;
       const ctxText = ctxIcon ? `${ctxIcon} ${tail}` : tail;
-      segments.push({
-        text: colorize(theme.colors.success, ctxText)
-      });
+      segments.push({ order: modules.context.order, text: colorize(theme.colors.success, ctxText) });
+    }
+
+    // Account usage: refresh first, then render
+    if (modules.accountUsage.enabled) {
+      const auIcon =
+        modules.accountUsage.icon ?? theme.components.accountUsage.icon ?? '[A]';
+
+      await refreshAccountUsage(
+        modules.accountUsage,
+        theme,
+        HTTP_TIMEOUT_MS,
+        input.cwd,
+        auIcon
+      );
+
+      const cachedResults = extractAccountUsageSync(modules.accountUsage, input.cwd);
+
+      for (const result of cachedResults) {
+        const usageIcon = auIcon || result.icon;
+        segments.push({
+          order: modules.accountUsage.order,
+          text: colorize(
+            result.fg,
+            usageIcon.length > 0 ? `${usageIcon} ${result.text}` : result.text
+          )
+        });
+      }
     }
 
     // Git
     if (modules.git.enabled) {
       const git = extractGit(input.cwd, input.session_id, theme);
       if (git) {
-        segments.push({
-          text: colorize(git.fg, git.text)
-        });
+        segments.push({ order: modules.git.order, text: colorize(git.fg, git.text) });
       }
     }
 
@@ -87,9 +109,7 @@ function main() {
           modules.cost.icon ?? theme.components.cost.icon ?? '';
         const line =
           icon.length > 0 ? `${icon} ${cost.text}` : cost.text;
-        segments.push({
-          text: colorize(theme.colors.warning, line)
-        });
+        segments.push({ order: modules.cost.order, text: colorize(theme.colors.warning, line) });
       }
     }
 
@@ -101,9 +121,7 @@ function main() {
         theme
       );
       if (duration) {
-        segments.push({
-          text: colorize(theme.colors.muted, duration.text)
-        });
+        segments.push({ order: modules.duration.order, text: colorize(theme.colors.muted, duration.text) });
       }
     }
 
@@ -113,18 +131,14 @@ function main() {
       const icon =
         modules.workspace.icon ?? theme.components.workspace.icon ?? '';
       const line = icon.length > 0 ? `${icon} ${ws.text}` : ws.text;
-      segments.push({
-        text: colorize(theme.colors.accent, line)
-      });
+      segments.push({ order: modules.workspace.order, text: colorize(theme.colors.accent, line) });
     }
 
     // Turns
     if (modules.turns.enabled) {
       const turns = extractTurns(input.transcript_path, theme);
       if (turns) {
-        segments.push({
-          text: colorize(theme.colors.info, turns.text)
-        });
+        segments.push({ order: modules.turns.order, text: colorize(theme.colors.info, turns.text) });
       }
     }
 
@@ -138,9 +152,7 @@ function main() {
           modules.cacheRatio.icon ?? theme.components.cacheRatio.icon ?? '';
         const pct = `${cachePct.toFixed(0)}%`;
         const line = icon.length > 0 ? `${icon} ${pct}` : pct;
-        segments.push({
-          text: colorize(theme.colors.accent, line)
-        });
+        segments.push({ order: modules.cacheRatio.order, text: colorize(theme.colors.accent, line) });
       }
     }
 
@@ -148,9 +160,7 @@ function main() {
     if (modules.rateLimits.enabled) {
       const rl = extractRateLimits(input, theme);
       if (rl) {
-        segments.push({
-          text: colorize(rl.fg, rl.text)
-        });
+        segments.push({ order: modules.rateLimits.order, text: colorize(rl.fg, rl.text) });
       }
     }
 
@@ -158,47 +168,15 @@ function main() {
     if (modules.weeklyQuota.enabled) {
       const wq = extractWeeklyQuota(input, theme);
       if (wq) {
-        segments.push({
-          text: colorize(wq.fg, wq.text)
-        });
+        segments.push({ order: modules.weeklyQuota.order, text: colorize(wq.fg, wq.text) });
       }
-    }
-
-    // Account usage (sync render + async refresh)
-    if (modules.accountUsage.enabled) {
-      const cachedResults = extractAccountUsageSync(modules.accountUsage);
-      const auIconFallback =
-        modules.accountUsage.icon ?? theme.components.accountUsage.icon ?? '';
-
-      for (const result of cachedResults) {
-        const usageIcon = auIconFallback || result.icon;
-        segments.push({
-          text: colorize(
-            result.fg,
-            usageIcon.length > 0 ? `${usageIcon} ${result.text}` : result.text
-          )
-        });
-      }
-
-      const refreshIcon =
-        modules.accountUsage.icon ?? theme.components.accountUsage.icon ?? '[A]';
-
-      refreshAccountUsage(
-        modules.accountUsage,
-        theme,
-        HTTP_TIMEOUT_MS,
-        input.cwd,
-        refreshIcon
-      ).catch((err: Error) => debug('Account usage refresh error:', err));
     }
 
     // MCP status
     if (modules.mcpStatus.enabled) {
       const mcp = extractMcpStatus(theme);
       if (mcp) {
-        segments.push({
-          text: colorize(theme.colors.muted, mcp.text)
-        });
+        segments.push({ order: modules.mcpStatus.order, text: colorize(theme.colors.muted, mcp.text) });
       }
     }
 
@@ -206,9 +184,7 @@ function main() {
     if (modules.thinking.enabled) {
       const thinking = extractThinking(input, theme);
       if (thinking) {
-        segments.push({
-          text: colorize(theme.colors.accent, thinking.text)
-        });
+        segments.push({ order: modules.thinking.order, text: colorize(theme.colors.accent, thinking.text) });
       }
     }
 
@@ -216,9 +192,7 @@ function main() {
     if (modules.outputStyle.enabled) {
       const style = extractOutputStyle(input, theme);
       if (style) {
-        segments.push({
-          text: colorize(theme.colors.muted, style.text)
-        });
+        segments.push({ order: modules.outputStyle.order, text: colorize(theme.colors.muted, style.text) });
       }
     }
 
@@ -234,11 +208,17 @@ function main() {
       }
     }
 
+    // Sort segments by configured order, then render
+    segments.sort((a, b) => a.order - b.order);
     const layoutOpts = {
       separator: config.separator,
       padding: config.padding
     };
-    const output = renderLayout(segments, theme, layoutOpts);
+    const output = renderLayout(
+      segments.map((s) => ({ text: s.text })),
+      theme,
+      layoutOpts
+    );
     console.log(output);
 
     if (config.advanced.debugMode) {
@@ -253,4 +233,4 @@ function main() {
   }
 }
 
-main();
+main().catch(() => process.exit(0));

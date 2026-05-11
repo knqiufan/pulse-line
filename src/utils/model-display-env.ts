@@ -6,7 +6,7 @@ import { loadMergedClaudeEnv, resolveEnvKey, firstNonEmptyEnv } from './claude-s
 const MODEL_EXPLICIT_ENV_KEYS = ['PULSE_MODEL_DISPLAY', 'CLAUDE_CODE_MODEL_DISPLAY'] as const;
 
 /** When tier env is unset, use these before stdin display_name. */
-const MODEL_GLOBAL_ENV_KEYS = ['CLAUDE_MODEL', 'ANTHROPIC_MODEL'] as const;
+const MODEL_GLOBAL_ENV_KEYS = ['CLAUDE_MODEL', 'ANTHROPIC_MODEL', 'ANTHROPIC_REASONING_MODEL'] as const;
 
 export interface ModelIdentity {
   id?: string;
@@ -30,8 +30,11 @@ function inferTierEnvKey(id: string | undefined, displayName: string | undefined
 }
 
 /**
- * Status bar model label: explicit env, then Claude tier → ANTHROPIC_DEFAULT_* ,
- * then CLAUDE_MODEL / ANTHROPIC_MODEL, then stdin snapshot.
+ * Status bar model label:
+ * 1. Explicit env override (PULSE_MODEL_DISPLAY / CLAUDE_CODE_MODEL_DISPLAY)
+ * 2. Tier mapping: stdin has "opus"/"sonnet"/"haiku" → ANTHROPIC_DEFAULT_*_MODEL
+ * 3. Stdin model name: already a custom model name → use directly
+ * 4. Global env fallback: CLAUDE_MODEL / ANTHROPIC_MODEL
  */
 export function resolveModelDisplayLabel(
   cwd: string,
@@ -48,9 +51,13 @@ export function resolveModelDisplayLabel(
     if (routed) return routed;
   }
 
+  // Stdin model name is already a custom model (no tier keyword) — use it directly.
+  // This ensures /model switches are reflected immediately.
+  const stdinName = model?.display_name?.trim() || model?.id?.trim();
+  if (stdinName) return stdinName;
+
   const global = firstNonEmptyEnv([...MODEL_GLOBAL_ENV_KEYS], merged)?.trim();
   if (global) return global;
 
-  const stdin = model?.display_name?.trim();
-  return stdin || null;
+  return null;
 }
