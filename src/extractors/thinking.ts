@@ -11,7 +11,7 @@ export interface ThinkingSegment {
 export function extractThinking(
   input: { thinking?: { enabled: boolean } },
   theme: Theme,
-  lang: Language = 'zh',
+  lang: Language = 'en',
   iconOverride?: string
 ): ThinkingSegment | null {
   if (!input.thinking) return null;

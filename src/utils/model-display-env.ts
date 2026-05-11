@@ -51,12 +51,14 @@ export function resolveModelDisplayLabel(
     if (routed) return routed;
   }
 
-  // Stdin model name is already a custom model (no tier keyword) — use it directly.
-  // This ensures /model switches are reflected immediately.
   const stdinName = model?.display_name?.trim() || model?.id?.trim();
+
+  // When tier was detected but tier env is empty, prefer global env over stdin name.
+  const global = firstNonEmptyEnv([...MODEL_GLOBAL_ENV_KEYS], merged)?.trim();
+  if (global && tierKey) return global;
+
   if (stdinName) return stdinName;
 
-  const global = firstNonEmptyEnv([...MODEL_GLOBAL_ENV_KEYS], merged)?.trim();
   if (global) return global;
 
   return null;

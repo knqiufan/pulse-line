@@ -12,7 +12,7 @@ test('upgradePulseSchemaIfNeeded coerces nerd to text once for old schema', () =
 
   assert.strictEqual(upgradePulseSchemaIfNeeded(c), true);
   assert.strictEqual(c.iconSet, 'text');
-  assert.strictEqual(c.schemaVersion, 3);
+  assert.strictEqual(c.schemaVersion, 4);
 });
 
 test('upgradePulseSchemaIfNeeded skips current schema', () => {

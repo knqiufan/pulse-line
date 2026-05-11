@@ -13,7 +13,7 @@ import * as os from 'os';
 test('extractThinking should detect thinking mode', () => {
   const result = extractThinking({ thinking: { enabled: true } }, darkTheme);
   assert.ok(result);
-  assert.strictEqual(result!.text, '[Think] on');
+  assert.strictEqual(result!.text, '[Think] On');
 });
 
 test('extractThinking should return null when not enabled', () => {

@@ -44,7 +44,7 @@ test('extractModel should return model segment', () => {
   assert.strictEqual(result.bold, true);
 });
 
-test('extractModel should return null for empty display_name', () => {
+test('extractModel should fall back to model id when display_name is empty', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pulse-ext-'));
   const keys = [
     'PULSE_MODEL_DISPLAY',
@@ -67,7 +67,8 @@ test('extractModel should return null for empty display_name', () => {
     });
 
     const result = extractModel(input, darkTheme);
-    assert.strictEqual(result, null);
+    assert.ok(result);
+    assert.ok(result!.text.includes('custom-unknown-id'));
   } finally {
     for (const k of keys) {
       const v = saved[k];
