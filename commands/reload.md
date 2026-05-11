@@ -19,5 +19,5 @@ Reload the configuration file manually. Useful when you've edited `~/.claude/pul
 Run the following shell command:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" reload
+npx -y pulse-line@latest reload
 ```

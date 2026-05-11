@@ -19,5 +19,5 @@ List all available themes for the status bar.
 Run the following shell command:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" themes
+npx -y pulse-line@latest themes
 ```

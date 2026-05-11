@@ -12,14 +12,14 @@ description: Install pulse-line to Claude Code user settings
 
 ## Description
 
-Initialize pulse-line in your Claude Code user settings. After installation, restart Claude Code to see the status bar.
+Initialize pulse-line in your Claude Code user settings. This creates the config directory, saves the default configuration, and configures `statusLine.command` in `~/.claude/settings.json`.
 
 ## Instructions
 
 Run the following shell command:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" install
+npx -y pulse-line@latest install
 ```
 
 Then tell the user to restart Claude Code for the status bar to take effect.

@@ -19,5 +19,5 @@ Clear all cached data for the pulse status bar, including API query results and 
 Run the following shell command:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" clear-cache
+npx -y pulse-line@latest clear-cache
 ```

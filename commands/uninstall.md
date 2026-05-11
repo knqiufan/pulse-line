@@ -19,5 +19,5 @@ Uninstall pulse-line. Configuration files are preserved — delete `~/.claude/pu
 Run the following shell command:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" uninstall
+npx -y pulse-line@latest uninstall
 ```

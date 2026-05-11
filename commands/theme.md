@@ -21,7 +21,7 @@ Changes take effect immediately on the next status bar render.
 Run the following shell command with the theme name provided by the user:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" theme <name>
+npx -y pulse-line@latest theme <name>
 ```
 
 If the user did not provide a theme name, ask which theme they want to switch to.

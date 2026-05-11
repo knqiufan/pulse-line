@@ -21,7 +21,7 @@ Changes take effect immediately on the next status bar render.
 Run the following shell command with the language code provided by the user:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pulse-line.js" language <lang>
+npx -y pulse-line@latest language <lang>
 ```
 
 If the user did not provide a language, ask which one they want: `zh` (Chinese) or `en` (English).

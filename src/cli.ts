@@ -38,7 +38,24 @@ program
       fs.mkdirSync(pulseDir, { recursive: true });
       saveConfig(loadConfig());
 
-      console.log('[OK] Pulse Line installed successfully.');
+      const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+      let settings: Record<string, unknown> = {};
+      if (fs.existsSync(settingsPath)) {
+        settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+      }
+
+      const statusLine = settings.statusLine as Record<string, unknown> | undefined;
+      const cmd = 'npx -y pulse-line@latest';
+      if (statusLine?.command && statusLine.command !== cmd) {
+        console.log('[WARN] statusLine.command already set to:', statusLine.command);
+        console.log('   To overwrite, manually edit ~/.claude/settings.json');
+      } else {
+        settings.statusLine = { type: 'command', command: cmd };
+        fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+        fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+        console.log('[OK] statusLine.command configured in settings.json');
+      }
+
       console.log('Config directory:', pulseDir);
       console.log('Edit config:', getConfigPath());
       console.log('\nNext steps:');
@@ -56,6 +73,17 @@ program
   .description('Uninstall pulse-line')
   .action(() => {
     try {
+      const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+      if (fs.existsSync(settingsPath)) {
+        const settings: Record<string, unknown> = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+        const sl = settings.statusLine as Record<string, unknown> | undefined;
+        if (sl?.command && String(sl.command).includes('pulse-line')) {
+          delete settings.statusLine;
+          fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+          console.log('[OK] Removed statusLine from settings.json');
+        }
+      }
+
       console.log('[OK] Pulse Line uninstalled');
       console.log('Config preserved at:', getPulseDir());
       console.log('   Delete manually if needed');
