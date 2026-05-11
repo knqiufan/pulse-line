@@ -145,13 +145,16 @@ async function main() {
     // Cache ratio
     if (modules.cacheRatio.enabled) {
       const usage = input.context_window.current_usage;
-      if (usage && usage.input_tokens > 0) {
-        const cachePct =
-          (usage.cache_read_input_tokens / usage.input_tokens) * 100;
+      if (usage && usage.cache_read_input_tokens > 0) {
         const icon =
           modules.cacheRatio.icon ?? theme.components.cacheRatio.icon ?? '';
-        const pct = `${cachePct.toFixed(0)}%`;
-        const line = icon.length > 0 ? `${icon} ${pct}` : pct;
+        const cached = usage.cache_read_input_tokens;
+        const label = cached >= 1_000_000
+          ? `${(cached / 1_000_000).toFixed(1)}M`
+          : cached >= 1000
+            ? `${(cached / 1000).toFixed(1)}K`
+            : `${cached}`;
+        const line = icon.length > 0 ? `${icon} ${label}` : label;
         segments.push({ order: modules.cacheRatio.order, text: colorize(theme.colors.accent, line) });
       }
     }

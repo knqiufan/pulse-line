@@ -16,7 +16,8 @@ export function extractSessionDuration(
   try {
     if (!fs.existsSync(sessionPath)) return null;
     const stat = fs.statSync(sessionPath);
-    const elapsed = Date.now() - stat.mtimeMs;
+    const startMs = stat.birthtimeMs || stat.mtimeMs;
+    const elapsed = Date.now() - startMs;
     const seconds = Math.floor(elapsed / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);

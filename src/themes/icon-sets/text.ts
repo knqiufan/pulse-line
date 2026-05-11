@@ -18,18 +18,18 @@ export interface IconSet {
 }
 
 export const textIconSet: IconSet = {
-  model: '[M]',
-  context: '[C]',
-  git: '[G]',
-  cost: '[$]',
-  duration: '[T]',
-  workspace: '[W]',
-  turns: '[N]',
-  cacheRatio: '[R]',
-  rateLimit: '[L]',
-  weeklyQuota: '[Q]',
-  mcpStatus: '[P]',
-  thinking: '[Think]',
-  outputStyle: '[S]',
-  accountUsage: '[A]'
+  model: '[模型]',
+  context: '[上下文使用率]',
+  git: '[Git 分支]',
+  cost: '[费用]',
+  duration: '[时长]',
+  workspace: '[工作区]',
+  turns: '[轮次]',
+  cacheRatio: '[缓存]',
+  rateLimit: '[限速]',
+  weeklyQuota: '[配额]',
+  mcpStatus: '[MCP]',
+  thinking: '[思考]',
+  outputStyle: '[风格]',
+  accountUsage: '[账户]'
 };

@@ -70,33 +70,33 @@ export const DEFAULT_CONFIG: PulseConfig = {
   iconSet: 'text',
   schemaVersion: 3,
   modules: {
-    model: { enabled: true, order: 1, icon: '[M]' },
+    model: { enabled: true, order: 1, icon: '[模型]' },
     context: {
       enabled: true,
       order: 2,
       showBar: true,
       showTokens: false,
       barWidth: 12,
-      icon: '[C]'
+      icon: '[上下文使用率]'
     },
     git: {
       enabled: true,
       order: 3,
       showUpstream: false,
-      icon: '[G]'
+      icon: '[Git 分支]'
     },
-    cost: { enabled: true, order: 4, icon: '[$]' },
-    duration: { enabled: false, order: 5, icon: '[T]' },
-    workspace: { enabled: false, order: 6, icon: '[W]' },
-    turns: { enabled: false, order: 7, icon: '[N]' },
-    cacheRatio: { enabled: false, order: 8, icon: '[R]' },
-    rateLimits: { enabled: false, order: 9, icon: '[L]', showCountdown: true },
-    weeklyQuota: { enabled: false, order: 10, icon: '[Q]', showCountdown: true },
-    accountUsage: { enabled: true, order: 11, icon: '[A]', providers: ['zhipu', 'deepseek'] },
-    mcpStatus: { enabled: false, order: 12, icon: '[P]' },
-    thinking: { enabled: false, order: 13, icon: '[Think]' },
-    outputStyle: { enabled: false, order: 14, icon: '[S]' },
-    thirdPartyApi: { enabled: false, order: 15, icon: '[L]', providers: [] }
+    cost: { enabled: false, order: 4, icon: '[费用]' },
+    duration: { enabled: false, order: 5, icon: '[时长]' },
+    workspace: { enabled: false, order: 6, icon: '[工作区]' },
+    turns: { enabled: false, order: 7, icon: '[轮次]' },
+    cacheRatio: { enabled: false, order: 8, icon: '[缓存]' },
+    rateLimits: { enabled: false, order: 9, icon: '[限速]', showCountdown: true },
+    weeklyQuota: { enabled: false, order: 10, icon: '[配额]', showCountdown: true },
+    accountUsage: { enabled: true, order: 11, icon: '[账户]', providers: ['zhipu', 'deepseek'] },
+    mcpStatus: { enabled: false, order: 12, icon: '[MCP]' },
+    thinking: { enabled: false, order: 13, icon: '[思考]' },
+    outputStyle: { enabled: false, order: 14, icon: '[风格]' },
+    thirdPartyApi: { enabled: false, order: 15, icon: '[API]', providers: [] }
   },
   advanced: {
     cacheEnabled: true,

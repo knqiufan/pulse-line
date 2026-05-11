@@ -1,180 +1,279 @@
 # Claude Pulse
 
-Customizable status bar for Claude Code CLI with multiple themes and advanced features.
+可定制的 Claude Code 状态栏插件，在终端底部显示会话关键信息。
 
-## Features
+[English version →](./README_EN.md)
 
-**Core modules (default on):**
-
-- Model name (Opus, Sonnet, etc.)
-- Context usage with Unicode block progress bar
-- Git branch and ahead/behind hints
-- Session cost (USD)
-
-**Advanced modules (opt-in):**
-
-- Session duration
-- Workspace / project folder name
-- Conversation turn count
-- Cache read ratio
-- Thinking mode flag
-- API rate limits (Pro/Max)
-- Weekly quota bars
-- MCP server count
-- Output style label
-- Account usage queries (see below)
-
-**Themes:** Deep Dark (default), Minimal Light, Forest, Ocean, Cyberpunk.
-
-## Installation
+## 安装
 
 ```bash
 npm install -g claude-pulse
 claude-pulse install
 ```
 
-## Usage
+重启 Claude Code 即可生效。
 
-Claude Code runs your configured `pulse` command on lifecycle events and pipes session JSON on stdin.
+## 使用方式
 
-## Icons and terminals
+在 Claude Code 会话中，通过 slash command 调整所有配置，无需离开会话。
 
-Default `iconSet` is **`text`**: bracket tags such as `[M]`, `[G]`, separators use Unicode **BOX DRAWINGS LIGHT VERTICAL** (U+2502, renders like a vertical rule). No Nerd Fonts required.
+### 切换主题
 
-Optional **`iconSet`: `"nerd"`** substitutes Nerd Font / Powerline glyphs; use only if your terminal uses a patched font, or icons may render as tofu.
+```
+/claude-pulse:theme <name>
+```
 
-Under **`iconSet`: `"text"`**, icons from `~/.claude/pulse/config.json` that contain **private-use-plane** characters (legacy Nerd glyphs) are **automatically reset** to the bundled ASCII defaults (`[M]`, `[C]`, …), so old configs do not keep producing tofu.
+可用主题：`dark`（默认）、`light`、`cyberpunk`、`forest`、`ocean`。
 
-## Model name in the status bar
+查看所有主题：
 
-Labels follow this order (**first non-empty wins**):
+```
+/claude-pulse:themes
+```
 
-1. Explicit override: **`PULSE_MODEL_DISPLAY`**, **`CLAUDE_CODE_MODEL_DISPLAY`** (`process.env` or merged Claude **`settings*.json`** `env`)
-2. **Tier routing**: infer Opus / Sonnet / Haiku from `model.id` and `display_name`, then pick env:
-   - Opus → `ANTHROPIC_DEFAULT_OPUS_MODEL`
-   - Sonnet → `ANTHROPIC_DEFAULT_SONNET_MODEL`
-   - Haiku → `ANTHROPIC_DEFAULT_HAIKU_MODEL`  
-   (Same merge order / `process.env` precedence as below.)
-3. Global fallbacks: **`CLAUDE_MODEL`**, **`ANTHROPIC_MODEL`**
-4. **`model.display_name`** from Claude Code stdin JSON if nothing matched above
+### 启用 / 禁用模块
 
-Typical Claude Code setup with a third‑party Anthropic‑compatible gateway (智谱示例): when the IDE shows “Opus 4.7”, Pulse reads **`ANTHROPIC_DEFAULT_OPUS_MODEL`** (e.g. `glm‑5.1`) from `~/.claude/settings.json`.
+```
+/claude-pulse:enable <module>
+/claude-pulse:disable <module>
+```
 
-Example — explicit pin from global settings:
+模块 ID 列表：
+
+| ID | 说明 | 默认 |
+|----|------|------|
+| `model` | 当前模型名称 | 开启 |
+| `context` | 上下文窗口用量 | 开启 |
+| `git` | Git 分支 | 开启 |
+| `accountUsage` | 第三方账户余量 | 开启 |
+| `cost` | 会话费用（USD） | 关闭 |
+| `duration` | 会话时长 | 关闭 |
+| `workspace` | 工作区名称 | 关闭 |
+| `turns` | 对话轮次 | 关闭 |
+| `cacheRatio` | 缓存命中率 | 关闭 |
+| `rateLimits` | API 速率限制 | 关闭 |
+| `weeklyQuota` | 周配额 | 关闭 |
+| `mcpStatus` | MCP 连接数 | 关闭 |
+| `thinking` | 思考模式 | 关闭 |
+| `outputStyle` | 输出风格 | 关闭 |
+| `thirdPartyApi` | 第三方 API 用量 | 关闭 |
+
+修改立即生效，下次状态栏刷新即可看到变化。
+
+### 编辑配置
+
+```
+/claude-pulse:config
+```
+
+在编辑器中打开 `~/.claude/pulse/config.json`，保存后配置自动生效。
+
+### 重载配置
+
+```
+/claude-pulse:reload
+```
+
+### 调试模式
+
+```
+/claude-pulse:debug on
+/claude-pulse:debug off
+```
+
+### 安装 / 卸载
+
+```
+/claude-pulse:install
+/claude-pulse:uninstall
+```
+
+## 配置文件
+
+配置文件位于 `~/.claude/pulse/config.json`，完整示例：
 
 ```json
 {
-  "env": {
-    "PULSE_MODEL_DISPLAY": "Sonnet 4.6"
+  "theme": "dark",
+  "separator": " │ ",
+  "padding": 1,
+  "iconSet": "text",
+  "schemaVersion": 3,
+  "modules": {
+    "model": { "enabled": true, "order": 1, "icon": "[M]" },
+    "context": { "enabled": true, "order": 2, "showBar": true, "barWidth": 12, "icon": "[C]" },
+    "git": { "enabled": true, "order": 3, "showUpstream": false, "icon": "[G]" },
+    "cost": { "enabled": false, "order": 4, "icon": "[$]" },
+    "duration": { "enabled": false, "order": 5, "icon": "[T]" },
+    "workspace": { "enabled": false, "order": 6, "icon": "[W]" },
+    "turns": { "enabled": false, "order": 7, "icon": "[N]" },
+    "cacheRatio": { "enabled": false, "order": 8, "icon": "[R]" },
+    "rateLimits": { "enabled": false, "order": 9, "icon": "[L]", "showCountdown": true },
+    "weeklyQuota": { "enabled": false, "order": 10, "icon": "[Q]", "showCountdown": true },
+    "accountUsage": { "enabled": true, "order": 11, "icon": "[A]", "providers": ["zhipu", "deepseek"] },
+    "mcpStatus": { "enabled": false, "order": 12, "icon": "[P]" },
+    "thinking": { "enabled": false, "order": 13, "icon": "[Think]" },
+    "outputStyle": { "enabled": false, "order": 14, "icon": "[S]" },
+    "thirdPartyApi": { "enabled": false, "order": 15, "icon": "[L]", "providers": [] }
+  },
+  "advanced": {
+    "cacheEnabled": true,
+    "cacheTTL": 300,
+    "gitTimeout": 200,
+    "debugMode": false,
+    "customThemePath": null
   }
 }
 ```
 
-## Third-party API keys (account usage)
+### 配置项说明
 
-The **`accountUsage`** module resolves credentials from merged Claude settings `env` (no `pulse/api-keys.json`).
+**全局：**
 
-| Provider | Environment variables |
-|----------|------------------------|
-| Zhipu (GLM) | `ZHIPU_API_KEY`, `ZHIPUAI_API_KEY`, or `BIGMODEL_API_KEY`; or **`ANTHROPIC_AUTH_TOKEN`/`ANTHROPIC_API_KEY` when `ANTHROPIC_BASE_URL` points at `*.bigmodel.cn`** (Anthropic-compat profile) |
-| DeepSeek | `DEEPSEEK_API_KEY` |
-| MiniMax | `MINIMAX_API_KEY`; optional `MINIMAX_GROUP_ID` |
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `theme` | string | `"dark"` | 主题名称 |
+| `separator` | string | `" │ "` | 模块分隔符 |
+| `padding` | number | `1` | 分隔符两侧空格数 |
+| `iconSet` | `"text"` \| `"nerd"` | `"text"` | 图标集 |
 
-Optional base URL overrides: `ZHIPU_BASE_URL`, `BIGMODEL_BASE_URL`, `DEEPSEEK_BASE_URL`, `MINIMAX_BASE_URL`, etc.
+**模块通用字段：**
 
-Merged `env` layer order (**weak→strong**, each replaces the earlier); **`process.env` overrides when defined**:
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `enabled` | boolean | 是否启用 |
+| `order` | number | 显示顺序，越小越靠左 |
+| `icon` | string | 前缀图标（可选） |
+
+**`context` 模块额外字段：**
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `showBar` | boolean | true | 显示进度条 |
+| `barWidth` | number | 12 | 进度条宽度 |
+| `showTokens` | boolean | false | 显示 token 数量 |
+
+**`git` 模块额外字段：**
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `showUpstream` | boolean | false | 显示 ahead/behind 提交数 |
+
+**`accountUsage` 模块额外字段：**
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `providers` | string[] | `["zhipu", "deepseek"]` | 供应商列表，留空自动检测 |
+
+**`rateLimits` / `weeklyQuota` 额外字段：**
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `showCountdown` | boolean | true | 显示重置倒计时 |
+
+## 图标集
+
+### `text`（默认）
+
+使用 ASCII 标签 `[M]` `[C]` `[G]` `[$]` `[A]` 等，分隔符为 `│`。无需安装任何字体。
+
+### `nerd`
+
+使用 Nerd Font 字形，需要终端安装 Nerd Font。
+
+```json
+{ "iconSet": "nerd" }
+```
+
+## 模型名称显示
+
+`[M]` 模块按以下优先级解析（取第一个非空值）：
+
+1. `PULSE_MODEL_DISPLAY` / `CLAUDE_CODE_MODEL_DISPLAY` 环境变量（显式覆盖）
+2. 从模型 ID 推断 Opus/Sonnet/Haiku，查找 `ANTHROPIC_DEFAULT_OPUS_MODEL` 等环境变量
+3. stdin 中的 `display_name` / `id`（自定义模型直接显示）
+4. `CLAUDE_MODEL` / `ANTHROPIC_MODEL` 环境变量（全局回退）
+
+环境变量合并顺序（弱→强，`process.env` 始终优先）：
 
 1. `~/.claude/settings.json`
 2. `~/.claude/settings.local.json`
 3. `<cwd>/.claude/settings.json`
 4. `<cwd>/.claude/settings.local.json`
 
-Legacy installs that left **`schemaVersion`** out of **`~/.claude/pulse/config.json`** automatically run a one‑time **`iconSet: nerd → text`** upgrade on load (writes `schemaVersion: 3`); you may switch back to `nerd` if your terminal ships a patched Nerd Font.
-
-## Configuration sample
-
-Edit `~/.claude/pulse/config.json`:
+使用第三方网关（如智谱 GLM）时，在 `~/.claude/settings.json` 中配置：
 
 ```json
 {
-  "theme": "dark",
-  "separator": " \u2502 ",
-  "padding": 1,
-  "iconSet": "text",
-  "schemaVersion": 3,
-  "modules": {
-    "model": { "enabled": true, "order": 1, "icon": "[M]" },
-    "context": {
-      "enabled": true,
-      "order": 2,
-      "showBar": true,
-      "barWidth": 12,
-      "icon": "[C]"
-    },
-    "git": {
-      "enabled": true,
-      "order": 3,
-      "showUpstream": false
-    },
-    "cost": { "enabled": true, "order": 4, "icon": "[$]" },
-    "accountUsage": {
-      "enabled": true,
-      "order": 11,
-      "icon": "[A]",
-      "providers": ["zhipu", "deepseek"]
-    }
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://open.bigmodel.cn/api/anthropic",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "glm-5.1",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "glm-5"
   }
 }
 ```
 
-Spacing: each separator is rendered as `repeat(padding) + separator + repeat(padding)` between segments.
+当 Claude Code 显示 "Opus 4.7" 时，状态栏自动显示 `glm-5.1`。`/model` 切换后 `[M]` 实时更新。
 
-## Known limitations
+## 第三方账户用量
 
-- The **`thirdPartyApi`** module only triggers background fetches today; rendered segments still come from **`accountUsage`** cache for GLM / DeepSeek style usage.
-- **MiniMax / StepFun / Xiaomi Mimo** account queries are stubs until endpoints are finalized.
+`[A]` 模块支持以下供应商的账户余量查询。
 
-## Performance
+### 智谱 GLM（zhipu）
 
-- **P50:** 0.29ms
-- **P95:** 0.46ms
-- **P99:** &lt;1ms
-- **Target:** &lt;80ms
+| 环境变量 | 说明 |
+|----------|------|
+| `ZHIPU_API_KEY` | 智谱 API Key |
+| `ZHIPU_BASE_URL` | 自定义 API 地址（可选） |
 
-## Development
+当 `ANTHROPIC_BASE_URL` 指向 `*.bigmodel.cn`，自动使用 `ANTHROPIC_AUTH_TOKEN` 作为凭证。
 
-本地在本仓库根目录打开 **Claude Code**，并已提交 `.claude/settings.json`，将状态栏指向 `node bin/claude-pulse.js`。请先在同一目录执行：
+设置 `PULSE_PROVIDER=zhipu` 可显式指定供应商（适用于本地代理转发场景）。
+
+显示格式：`GLM: ████░░░░░░░░ 35.2% (3h 25m 剩余)`
+
+### DeepSeek
+
+| 环境变量 | 说明 |
+|----------|------|
+| `DEEPSEEK_API_KEY` | DeepSeek API Key |
+
+显示格式：`DeepSeek: CN¥73.72`
+
+### MiniMax
+
+| 环境变量 | 说明 |
+|----------|------|
+| `MINIMAX_API_KEY` | MiniMax API Key |
+| `MINIMAX_GROUP_ID` | 小组 ID（可选） |
+
+### 自动检测
+
+当 `accountUsage.providers` 为空时，系统自动通过 `PULSE_PROVIDER` 或 `ANTHROPIC_BASE_URL` 域名检测供应商。
+
+### 缓存
+
+账户数据缓存 2 分钟，首次进入会话立即刷新。切换供应商后自动清理旧缓存，只显示当前供应商数据。
+
+## CLI 命令
+
+除了在会话中使用 slash command，也可在终端直接使用 CLI：
 
 ```bash
-npm install
-npm run build
+claude-pulse install              # 安装
+claude-pulse theme cyberpunk      # 切换主题
+claude-pulse enable mcpStatus     # 启用模块
+claude-pulse disable workspace    # 禁用模块
+claude-pulse config               # 编辑配置
+claude-pulse reload               # 重载配置
+claude-pulse themes               # 查看主题列表
+claude-pulse debug on             # 开启调试
 ```
 
-然后在本目录启动 Claude Code（若使用 CLI，可附带从本目录加载插件：`claude --plugin-dir .`，以便使用 `.claude-plugin/` 下的命令文档）。
+## 系统要求
 
-其余常用命令：
-
-```bash
-npm test
-node test/benchmark.ts
-```
-
-## Architecture
-
-```
-src/
-├── index.ts           # Main stdin driver
-├── parser/            # stdin JSON
-├── extractors/        # model, git, context, billing helpers
-├── formatters/        # layout with separator + padding
-├── themes/            # builtins + nerd overlay
-├── config/            # config merge
-└── utils/             # cache, ansi, Claude settings env merge
-```
-
-## Dependencies
-
-The status line **`src/index.ts`** path uses Node.js built-ins only. The **`claude-pulse` CLI** (install/theme/config commands) adds **`commander`**.
+- Node.js ≥ 18.0.0
+- Claude Code
 
 ## License
 

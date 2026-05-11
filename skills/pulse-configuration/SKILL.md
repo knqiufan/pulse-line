@@ -1,3 +1,7 @@
+---
+description: Configure claude-pulse modules, themes, and status bar customization
+---
+
 # Pulse Configuration Skill
 
 ## Overview

@@ -12,10 +12,29 @@ export interface McpSegment {
 
 export function extractMcpStatus(theme: Theme): McpSegment | null {
   try {
-    const mcpPath = path.join(os.homedir(), '.claude', '.mcp.json');
-    if (!fs.existsSync(mcpPath)) return null;
-    const mcp = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
-    const count = Object.keys(mcp.mcpServers || {}).length;
+    let count = 0;
+
+    // ~/.claude.json (global MCP servers)
+    const globalPath = path.join(os.homedir(), '.claude.json');
+    if (fs.existsSync(globalPath)) {
+      const global = JSON.parse(fs.readFileSync(globalPath, 'utf8'));
+      count += Object.keys(global.mcpServers || {}).length;
+    }
+
+    // ~/.claude/.mcp.json (user-level shared MCP)
+    const userPath = path.join(os.homedir(), '.claude', '.mcp.json');
+    if (fs.existsSync(userPath)) {
+      const user = JSON.parse(fs.readFileSync(userPath, 'utf8'));
+      count += Object.keys(user.mcpServers || {}).length;
+    }
+
+    // <cwd>/.mcp.json (project-level MCP)
+    const projectPath = path.join(process.cwd(), '.mcp.json');
+    if (fs.existsSync(projectPath)) {
+      const project = JSON.parse(fs.readFileSync(projectPath, 'utf8'));
+      count += Object.keys(project.mcpServers || {}).length;
+    }
+
     if (count === 0) return null;
     const i = theme.components.mcpStatus.icon;
     const glyph = theme.components.mcpStatus.showIcon !== false && i ? `${i} ` : '';

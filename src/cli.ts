@@ -12,6 +12,14 @@ import {
   getPulseDir
 } from './config/loader';
 import { loadTheme, getBuiltinThemeNames } from './themes';
+import { removeSessionCacheKey } from './utils/cache';
+
+const CONFIG_CACHE_KEY = 'pulse-config-v4';
+
+function saveAndInvalidate(config: import('./types/pulse-config').PulseConfig): void {
+  saveConfig(config);
+  removeSessionCacheKey('global', CONFIG_CACHE_KEY);
+}
 
 const program = new Command();
 
@@ -69,7 +77,7 @@ program
 
     const config = loadConfig();
     config.theme = name;
-    saveConfig(config);
+    saveAndInvalidate(config);
     console.log(`[OK] Theme switched to: ${name}`);
   });
 
@@ -82,6 +90,7 @@ program
 
     try {
       execSync(`${editor} "${configPath}"`, { stdio: 'inherit' });
+      removeSessionCacheKey('global', CONFIG_CACHE_KEY);
       console.log('[OK] Config saved');
     } catch (err) {
       console.error('[ERROR] Failed to open editor:', err instanceof Error ? err.message : err);
@@ -118,7 +127,7 @@ program
     }
 
     mod.enabled = true;
-    saveConfig(config);
+    saveAndInvalidate(config);
     console.log(`[OK] Module enabled: ${module}`);
   });
 
@@ -135,7 +144,7 @@ program
     }
 
     mod.enabled = false;
-    saveConfig(config);
+    saveAndInvalidate(config);
     console.log(`[OK] Module disabled: ${module}`);
   });
 
@@ -150,7 +159,7 @@ program
 
     const config = loadConfig();
     config.advanced.debugMode = mode === 'on';
-    saveConfig(config);
+    saveAndInvalidate(config);
     console.log(`[OK] Debug mode: ${mode}`);
   });
 
