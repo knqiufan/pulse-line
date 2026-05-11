@@ -15,6 +15,8 @@ export const zhLabels: Record<string, string> = {
   thinking: '思考',
   thinkingOn: '开启',
   thinkingOff: '关闭',
+  remaining: '剩余',
+  reset: '已重置',
   outputStyle: '风格',
   accountUsage: '账户',
   thirdPartyApi: 'API',

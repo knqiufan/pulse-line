@@ -11,13 +11,13 @@ export interface ModelSegment {
   dim: boolean;
 }
 
-export function extractModel(input: PulseInput, theme: Theme): ModelSegment | null {
+export function extractModel(input: PulseInput, theme: Theme, iconOverride?: string): ModelSegment | null {
   const modelName = resolveModelDisplayLabel(input.cwd, input.model);
   if (!modelName) return null;
 
   const style = theme.components.model;
-  const glyph =
-    style.showIcon !== false && style.icon ? `${style.icon} ` : '';
+  const ic = iconOverride ?? style.icon;
+  const glyph = style.showIcon !== false && ic ? `${ic} ` : '';
 
   return {
     text: `${glyph}${modelName}`,

@@ -48,7 +48,7 @@ async function main() {
 
     // Model
     if (modules.model.enabled) {
-      const model = extractModel(input, theme);
+      const model = extractModel(input, theme, modules.model.icon);
       if (model) {
         segments.push({ order: modules.model.order, text: renderSegment(model) });
       }
@@ -74,7 +74,8 @@ async function main() {
         theme,
         HTTP_TIMEOUT_MS,
         input.cwd,
-        auIcon
+        auIcon,
+        config.language
       );
 
       const cachedResults = extractAccountUsageSync(modules.accountUsage, input.cwd);

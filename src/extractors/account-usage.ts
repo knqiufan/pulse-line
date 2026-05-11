@@ -6,6 +6,8 @@ import { loadMergedClaudeEnv } from '../utils/claude-settings-env';
 import { resolveProviderCredentials, detectProvidersFromEnv, type ResolvedProviderCred } from '../utils/provider-credentials';
 import { loadSessionCache, saveSessionCache, removeSessionCacheKey } from '../utils/cache';
 import type { AccountUsageModuleConfig } from '../types/pulse-config';
+import type { Language } from '../types/pulse-config';
+import { getLabel } from '../i18n';
 
 export interface AccountUsageResult {
   provider: string;
@@ -35,7 +37,7 @@ function formatDeepSeekUsage(data: any, icon: string): AccountUsageResult {
   return { provider: 'deepseek', text, fg: '#00d4aa', icon };
 }
 
-function formatPercentUsage(data: any, provider: string, label: string, icon: string, fg: string): AccountUsageResult {
+function formatPercentUsage(data: any, provider: string, label: string, icon: string, fg: string, lang: Language = 'en'): AccountUsageResult {
   const limits = data.data?.limits || [];
   const tokensLimits = limits.filter((l: any) => l.type === 'TOKENS_LIMIT');
 
@@ -61,9 +63,11 @@ function formatPercentUsage(data: any, provider: string, label: string, icon: st
       if (diffMs > 0) {
         const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
         const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        text += ` (${diffHrs}h ${diffMins}m 剩余)`;
+        const remLabel = getLabel(lang, 'remaining');
+        text += ` (${diffHrs}h ${diffMins}m ${remLabel})`;
       } else {
-        text += ' (已重置)';
+        const resetLabel = getLabel(lang, 'reset');
+        text += ` (${resetLabel})`;
       }
     }
   }
@@ -76,7 +80,8 @@ function formatPercentUsage(data: any, provider: string, label: string, icon: st
 async function queryZhipu(
   cred: ResolvedProviderCred,
   timeout: number,
-  icon: string
+  icon: string,
+  lang: Language = 'en'
 ): Promise<AccountUsageResult | null> {
   return new Promise((resolve) => {
     const url = new URL('/api/monitor/usage/quota/limit', cred.baseUrl);
@@ -99,7 +104,7 @@ async function queryZhipu(
           const json = JSON.parse(data);
           debug('Zhipu API response:', JSON.stringify(json).substring(0, 500));
           if (json.code !== 200) { resolve(null); return; }
-          resolve(formatPercentUsage(json, 'zhipu', 'GLM', icon, '#a855f7'));
+          resolve(formatPercentUsage(json, 'zhipu', 'GLM', icon, '#a855f7', lang));
         } catch { resolve(null); }
       });
     });
@@ -149,7 +154,8 @@ async function queryDeepSeek(
 async function queryMiniMax(
   cred: ResolvedProviderCred,
   timeout: number,
-  icon: string
+  icon: string,
+  lang: Language = 'en'
 ): Promise<AccountUsageResult | null> {
   return new Promise((resolve) => {
     const url = new URL('/api/monitor/usage/quota/limit', cred.baseUrl);
@@ -177,7 +183,7 @@ async function queryMiniMax(
           const json = JSON.parse(data);
           debug('MiniMax API response:', JSON.stringify(json).substring(0, 500));
           if (json.code !== 200) { resolve(null); return; }
-          resolve(formatPercentUsage(json, 'minimax', 'MiniMax', icon, '#f97316'));
+          resolve(formatPercentUsage(json, 'minimax', 'MiniMax', icon, '#f97316', lang));
         } catch { resolve(null); }
       });
     });
@@ -192,12 +198,13 @@ async function runProviderQuery(
   provider: string,
   cred: ResolvedProviderCred,
   timeout: number,
-  icon: string
+  icon: string,
+  lang: Language = 'en'
 ): Promise<AccountUsageResult | null> {
   switch (provider) {
-    case 'zhipu':    return queryZhipu(cred, timeout, icon);
+    case 'zhipu':    return queryZhipu(cred, timeout, icon, lang);
     case 'deepseek': return queryDeepSeek(cred, timeout, icon);
-    case 'minimax':  return queryMiniMax(cred, timeout, icon);
+    case 'minimax':  return queryMiniMax(cred, timeout, icon, lang);
     default:         return null;
   }
 }
@@ -269,7 +276,8 @@ export async function refreshAccountUsage(
   _theme: unknown,
   timeout: number,
   cwd: string,
-  icon: string
+  icon: string,
+  lang: Language = 'en'
 ): Promise<void> {
   if (!config.enabled) return;
 
@@ -294,7 +302,7 @@ export async function refreshAccountUsage(
     }
 
     promises.push(
-      runProviderQuery(provider, cred, timeout, icon)
+      runProviderQuery(provider, cred, timeout, icon, lang)
         .then((result) => {
           if (result) {
             saveSessionCache('global', cacheKey(provider), result, CACHE_TTL);

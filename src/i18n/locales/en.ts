@@ -15,6 +15,8 @@ export const enLabels: Record<string, string> = {
   thinking: 'Thinking',
   thinkingOn: 'On',
   thinkingOff: 'Off',
+  remaining: 'remaining',
+  reset: 'reset',
   outputStyle: 'Style',
   accountUsage: 'Account',
   thirdPartyApi: 'API',
