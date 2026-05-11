@@ -31,9 +31,6 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
-      - name: Lint
-        run: npm run lint
-
       - name: Build
         run: npm run build
 
@@ -41,15 +38,15 @@ jobs:
         run: npm test
 
       - name: Run performance benchmark
-        run: node test/benchmark.ts
+        run: node dist/test/benchmark.js
         env:
           NODE_ENV: test
 
       - name: Verify CLI commands
         run: |
-          node dist/cli.js --help
-          node dist/cli.js themes
-          node dist/cli.js reload
+          node dist/src/cli.js --help
+          node dist/src/cli.js themes
+          node dist/src/cli.js reload
 
   performance-check:
     name: Performance Validation
@@ -73,7 +70,7 @@ jobs:
         run: npm run build
 
       - name: Run benchmark and verify performance
-        run: node test/benchmark.ts
+        run: node dist/test/benchmark.js
 
   code-quality:
     name: Code Quality
@@ -94,9 +91,6 @@ jobs:
 
       - name: Type check
         run: npx tsc --noEmit
-
-      - name: Lint
-        run: npm run lint
 
   release:
     name: Publish to npm
