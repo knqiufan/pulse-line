@@ -7,6 +7,13 @@ import { debug } from './logger';
 
 export type MergedEnvMap = Record<string, string>;
 
+let _testEnvOverride: MergedEnvMap | null = null;
+
+/** @internal Test hook: force loadMergedClaudeEnv to return a fixed map. */
+export function __setTestEnvOverride(map: MergedEnvMap | null) {
+  _testEnvOverride = map;
+}
+
 function readSettingsEnvFile(filePath: string): MergedEnvMap {
   if (!fs.existsSync(filePath)) return {};
   try {
@@ -34,6 +41,7 @@ function mergeEnvLayers(low: MergedEnvMap, high: MergedEnvMap): MergedEnvMap {
  *        {cwd}/.claude/settings.json → {cwd}/.claude/settings.local.json
  */
 export function loadMergedClaudeEnv(cwd: string): MergedEnvMap {
+  if (_testEnvOverride !== null) return _testEnvOverride;
   const home = os.homedir();
   const paths = [
     path.join(home, '.claude', 'settings.json'),

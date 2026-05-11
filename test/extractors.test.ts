@@ -10,6 +10,7 @@ import { extractContext } from '../src/extractors/context';
 import { extractCost } from '../src/extractors/cost';
 import { extractWorkspace } from '../src/extractors/workspace';
 import { darkTheme } from '../src/themes/builtin/dark';
+import { __setTestEnvOverride } from '../src/utils/claude-settings-env';
 
 const fullInput = (overrides: Partial<import('../src/types/pulse-input').PulseInput> = {}): import('../src/types/pulse-input').PulseInput => ({
   cwd: '',
@@ -32,16 +33,37 @@ const fullInput = (overrides: Partial<import('../src/types/pulse-input').PulseIn
 });
 
 test('extractModel should return model segment', () => {
-  const input = fullInput({
-    model: { id: 'claude-opus-4', display_name: 'Opus 4' }
-  });
+  const keys = [
+    'PULSE_MODEL_DISPLAY',
+    'CLAUDE_CODE_MODEL_DISPLAY',
+    'CLAUDE_MODEL',
+    'ANTHROPIC_MODEL',
+    'ANTHROPIC_REASONING_MODEL',
+    'ANTHROPIC_DEFAULT_OPUS_MODEL',
+    'ANTHROPIC_DEFAULT_SONNET_MODEL',
+    'ANTHROPIC_DEFAULT_HAIKU_MODEL'
+  ] as const;
+  const saved: Record<string, string | undefined> = {};
+  for (const k of keys) { saved[k] = process.env[k]; delete process.env[k]; }
+  __setTestEnvOverride({});
+  try {
+    const input = fullInput({
+      model: { id: 'claude-opus-4', display_name: 'Opus 4' }
+    });
 
-  const result = extractModel(input, darkTheme);
-  assert.ok(result);
-  // Icon prefix should be present before model name
-  assert.ok(result.text.endsWith('Opus 4'));
-  assert.strictEqual(result.fg, '#7aa2f7');
-  assert.strictEqual(result.bold, true);
+    const result = extractModel(input, darkTheme);
+    assert.ok(result);
+    assert.ok(result.text.endsWith('Opus 4'));
+    assert.strictEqual(result.fg, '#7aa2f7');
+    assert.strictEqual(result.bold, true);
+  } finally {
+    __setTestEnvOverride(null);
+    for (const k of keys) {
+      const v = saved[k];
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
+    }
+  }
 });
 
 test('extractModel should fall back to model id when display_name is empty', () => {
