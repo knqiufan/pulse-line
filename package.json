@@ -15,10 +15,19 @@
     "lint": "eslint src/**/*.ts",
     "prepublishOnly": "npm run build"
   },
+  "files": [
+    "dist/",
+    "bin/",
+    "commands/",
+    ".claude-plugin/",
+    "skills/"
+  ],
   "keywords": [
     "claude-code",
-    "pulse",
-    "cli"
+    "statusline",
+    "status-bar",
+    "monitoring",
+    "pulse-line"
   ],
   "license": "MIT",
   "engines": {

@@ -1,13 +1,27 @@
 {
   "name": "pulse-line",
-  "description": "Customizable status bar for Claude Code with multiple themes and advanced features",
   "version": "1.0.0",
+  "description": "A highly customizable status bar plugin for Claude Code with multi-theme support, i18n, and real-time monitoring",
   "author": {
-    "name": "Pulse Line Team"
+    "name": "knqiufan",
+    "url": "https://github.com/knqiufan"
   },
-  "license": "MIT",
+  "homepage": "https://github.com/knqiufan/pulse-line",
   "repository": "https://github.com/knqiufan/pulse-line",
-  "keywords": ["claude-code", "status-bar", "monitoring", "productivity"],
-  "commands": "./commands/",
+  "license": "MIT",
+  "keywords": ["claude-code", "statusline", "status-bar", "monitoring", "productivity", "pulse-line"],
+  "commands": [
+    "./commands/install.md",
+    "./commands/theme.md",
+    "./commands/themes.md",
+    "./commands/enable.md",
+    "./commands/disable.md",
+    "./commands/language.md",
+    "./commands/config.md",
+    "./commands/reload.md",
+    "./commands/clear-cache.md",
+    "./commands/debug.md",
+    "./commands/uninstall.md"
+  ],
   "skills": "./skills/"
 }

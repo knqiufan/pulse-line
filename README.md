@@ -7,6 +7,32 @@ A highly customizable status bar plugin for [Claude Code](https://docs.anthropic
 ![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node.js >=18](https://img.shields.io/badge/node-%3E%3D18-green.svg)
 
+## Installation
+
+### Plugin Marketplace (recommended)
+
+```
+/plugin marketplace add knqiufan/pulse-line
+/plugin install pulse-line
+```
+
+Then restart Claude Code. Pulse Line will auto-initialize on first run.
+
+### npx (zero install)
+
+Set the status bar command in your Claude Code `settings.json`:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "npx -y pulse-line@latest"
+  }
+}
+```
+
+No global install needed — `npx` fetches and runs the latest version automatically. For a globally installed version, run `npm install -g pulse-line` and use `"command": "pulse-line"` instead.
+
 ## Features
 
 - **15 Modules** — Model, Git branch, Context usage, Cache ratio, MCP status, Account usage, Turns, Thinking, and more
@@ -15,18 +41,6 @@ A highly customizable status bar plugin for [Claude Code](https://docs.anthropic
 - **3rd Party API Usage** — Monitor Zhipu (GLM), DeepSeek, MiniMax account balance and quota
 - **Configurable Layout** — Custom module order, 3 segments per row, customizable separators
 - **Slash Commands** — 11 built-in commands for easy management
-
-## Quick Start
-
-```bash
-# Install globally
-npm install -g pulse-line
-
-# Initialize config (~/.claude/pulse/config.json)
-pulse-line install
-
-# Restart Claude Code
-```
 
 ## Usage
 
@@ -92,6 +106,9 @@ Providers are auto-detected from your Claude Code settings. You can also configu
 pulse-line config  # Edit providers array in accountUsage module
 ```
 
+> [!NOTE]
+> Account usage data is obtained from third-party provider APIs. If the provider does not expose this information via its API, it cannot be displayed. Data shown is for reference only — always refer to the provider's official dashboard for accurate figures.
+
 ## Configuration
 
 Config file: `~/.claude/pulse/config.json`
@@ -149,6 +166,32 @@ claude --plugin-dir /path/to/pulse-line
 
 一个高度可定制的 [Claude Code](https://docs.anthropic.com/en/docs/claude-code) 状态栏插件，支持多主题、国际化和实时监控。
 
+## 安装
+
+### Plugin Marketplace（推荐）
+
+```
+/plugin marketplace add knqiufan/pulse-line
+/plugin install pulse-line
+```
+
+重启 Claude Code 即可，首次运行 Pulse Line 会自动初始化配置。
+
+### npx（零安装）
+
+在 Claude Code 的 `settings.json` 中设置状态栏命令：
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "npx -y pulse-line@latest"
+  }
+}
+```
+
+无需全局安装 —— `npx` 每次自动拉取最新版执行。如果想全局安装，运行 `npm install -g pulse-line`，然后将 command 设为 `"pulse-line"` 即可。
+
 ## 功能特性
 
 - **15 个模块** — 当前模型、Git 分支、上下文使用率、缓存、MCP 状态、账户用量、轮次、思考模式等
@@ -157,18 +200,6 @@ claude --plugin-dir /path/to/pulse-line
 - **第三方 API 用量** — 监控智谱 (GLM)、DeepSeek、MiniMax 账户余额和配额
 - **可配置布局** — 自定义模块顺序，每行 3 个指标，可自定义分隔符
 - **斜杠命令** — 11 个内置命令，方便管理
-
-## 快速开始
-
-```bash
-# 全局安装
-npm install -g pulse-line
-
-# 初始化配置 (~/.claude/pulse/config.json)
-pulse-line install
-
-# 重启 Claude Code
-```
 
 ## 使用方法
 
@@ -233,6 +264,9 @@ Pulse Line 可以监控第三方 API 供应商的账户余额和配额：
 ```bash
 pulse-line config  # 编辑 accountUsage 模块的 providers 数组
 ```
+
+> [!NOTE]
+> 账户用量数据来源于第三方供应商 API，若官方未提供相关接口则无法显示。显示数据仅供参考，请以供应商官方后台为准。
 
 ## 配置
 
