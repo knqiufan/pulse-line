@@ -7,7 +7,7 @@ export interface TurnsSegment {
   text: string;
 }
 
-export function extractTurns(transcriptPath: string, theme: Theme): TurnsSegment | null {
+export function extractTurns(transcriptPath: string, theme: Theme, iconOverride?: string): TurnsSegment | null {
   try {
     if (!fs.existsSync(transcriptPath)) return null;
 
@@ -27,7 +27,7 @@ export function extractTurns(transcriptPath: string, theme: Theme): TurnsSegment
     }
 
     if (turns === 0) return null;
-    const ic = theme.components.turns.icon;
+    const ic = iconOverride ?? theme.components.turns.icon;
     const glyph = theme.components.turns.showIcon !== false && ic ? `${ic} ` : '';
     return { text: `${glyph}${turns} turns` };
   } catch {

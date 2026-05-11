@@ -13,6 +13,7 @@ import {
 } from './config/loader';
 import { loadTheme, getBuiltinThemeNames } from './themes';
 import { removeSessionCacheKey } from './utils/cache';
+import { isValidLanguage, getAllLanguages, getLabels } from './i18n';
 
 const CONFIG_CACHE_KEY = 'pulse-config-v4';
 
@@ -173,6 +174,63 @@ program
       const theme = loadTheme(name, 'text');
       console.log(`  ${name.padEnd(12)} - ${theme.meta.description}`);
     });
+  });
+
+program
+  .command('language <lang>')
+  .description('Switch display language (zh, en)')
+  .action((lang: string) => {
+    if (!isValidLanguage(lang)) {
+      console.error(`[ERROR] Unknown language: ${lang}`);
+      console.error(`Available languages: ${getAllLanguages().join(', ')}`);
+      process.exit(1);
+    }
+
+    const config = loadConfig();
+    config.language = lang;
+    const labels = getLabels(lang);
+
+    const moduleKeyMap: Record<string, string> = {
+      model: 'model',
+      context: 'context',
+      git: 'git',
+      cost: 'cost',
+      duration: 'duration',
+      workspace: 'workspace',
+      turns: 'turns',
+      cacheRatio: 'cacheRatio',
+      rateLimits: 'rateLimit',
+      weeklyQuota: 'weeklyQuota',
+      mcpStatus: 'mcpStatus',
+      thinking: 'thinking',
+      outputStyle: 'outputStyle',
+      accountUsage: 'accountUsage',
+      thirdPartyApi: 'thirdPartyApi'
+    };
+
+    for (const [modKey, labelKey] of Object.entries(moduleKeyMap)) {
+      const mod = (config.modules as any)[modKey];
+      if (mod && labels[labelKey]) {
+        mod.icon = `[${labels[labelKey]}]`;
+      }
+    }
+
+    saveAndInvalidate(config);
+    console.log(`[OK] Language switched to: ${lang}`);
+  });
+
+program
+  .command('clear-cache')
+  .description('Clear all pulse cache files')
+  .action(() => {
+    const cacheDir = path.join(getPulseDir(), 'cache');
+    if (fs.existsSync(cacheDir)) {
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+      fs.mkdirSync(cacheDir, { recursive: true });
+      console.log('[OK] Cache cleared');
+    } else {
+      console.log('[OK] Cache directory does not exist, nothing to clear');
+    }
   });
 
 program.parse();

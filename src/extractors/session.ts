@@ -11,7 +11,8 @@ export interface DurationSegment {
 export function extractSessionDuration(
   _sessionId: string,
   sessionPath: string,
-  theme: Theme
+  theme: Theme,
+  iconOverride?: string
 ): DurationSegment | null {
   try {
     if (!fs.existsSync(sessionPath)) return null;
@@ -31,7 +32,7 @@ export function extractSessionDuration(
       inner = `${seconds}s`;
     }
 
-    const ic = theme.components.duration.icon;
+    const ic = iconOverride ?? theme.components.duration.icon;
     const glyph = theme.components.duration.showIcon !== false && ic ? `${ic} ` : '';
     return { text: `${glyph}${inner}` };
   } catch {

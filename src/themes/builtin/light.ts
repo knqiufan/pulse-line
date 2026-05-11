@@ -10,7 +10,7 @@ export const lightTheme: Theme = {
     description: 'Clean light theme for light terminals'
   },
   separator: {
-    left: '\u2502',
+    left: '│',
     right: '',
     color: '#a1a1aa'
   },
@@ -26,7 +26,7 @@ export const lightTheme: Theme = {
     dim: '#a1a1aa'
   },
   components: {
-    model: { fg: '#0369a1', bold: true, icon: '[模型]', showIcon: true },
+    model: { fg: '#0369a1', bold: true, icon: '[当前模型]', showIcon: true },
     context: { fg: '#16a34a', icon: '[上下文使用率]', showIcon: true },
     contextBar: { fg: '#16a34a', icon: '', showIcon: false, bg: '#e4e4e7' },
     git: { fg: '#0891b2', icon: '[Git 分支]', showIcon: true },

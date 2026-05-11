@@ -18,7 +18,7 @@ export interface IconSet {
 }
 
 export const textIconSet: IconSet = {
-  model: '[模型]',
+  model: '[当前模型]',
   context: '[上下文使用率]',
   git: '[Git 分支]',
   cost: '[费用]',

@@ -10,7 +10,7 @@ export interface McpSegment {
   text: string;
 }
 
-export function extractMcpStatus(theme: Theme): McpSegment | null {
+export function extractMcpStatus(theme: Theme, iconOverride?: string): McpSegment | null {
   try {
     let count = 0;
 
@@ -36,8 +36,8 @@ export function extractMcpStatus(theme: Theme): McpSegment | null {
     }
 
     if (count === 0) return null;
-    const i = theme.components.mcpStatus.icon;
-    const glyph = theme.components.mcpStatus.showIcon !== false && i ? `${i} ` : '';
+    const ic = iconOverride ?? theme.components.mcpStatus.icon;
+    const glyph = theme.components.mcpStatus.showIcon !== false && ic ? `${ic} ` : '';
     return { text: `${glyph}${count} servers` };
   } catch {
     return null;

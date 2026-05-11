@@ -9,7 +9,7 @@ export interface RateLimitSegment {
   fg: string;
 }
 
-export function extractRateLimits(input: PulseInput, theme: Theme): RateLimitSegment | null {
+export function extractRateLimits(input: PulseInput, theme: Theme, iconOverride?: string): RateLimitSegment | null {
   if (!input.rate_limits) return null;
 
   const fiveHour = input.rate_limits.five_hour;
@@ -18,8 +18,8 @@ export function extractRateLimits(input: PulseInput, theme: Theme): RateLimitSeg
   const pct = Math.min(100, (fiveHour.requests_used / fiveHour.requests_limit) * 100);
   const barWidth = 8;
   const bar = renderProgressBar(pct, barWidth);
-  const i = theme.components.rateLimit.icon;
-  const glyph = theme.components.rateLimit.showIcon !== false && i ? `${i} ` : '';
+  const ic = iconOverride ?? theme.components.rateLimit.icon;
+  const glyph = theme.components.rateLimit.showIcon !== false && ic ? `${ic} ` : '';
   const text = `${glyph}${bar} ${pct.toFixed(0)}%`;
 
   return {
@@ -28,16 +28,15 @@ export function extractRateLimits(input: PulseInput, theme: Theme): RateLimitSeg
   };
 }
 
-export function extractWeeklyQuota(input: PulseInput, theme: Theme): RateLimitSegment | null {
+export function extractWeeklyQuota(input: PulseInput, theme: Theme, iconOverride?: string): RateLimitSegment | null {
   if (!input.rate_limits?.seven_day) return null;
 
   const week = input.rate_limits.seven_day;
   const pct = Math.min(100, (week.requests_used / week.requests_limit) * 100);
   const barWidth = 10;
   const bar = renderProgressBar(pct, barWidth);
-  const wi = theme.components.weeklyQuota.icon;
-  const wglyph =
-    theme.components.weeklyQuota.showIcon !== false && wi ? `${wi} ` : '';
+  const ic = iconOverride ?? theme.components.weeklyQuota.icon;
+  const wglyph = theme.components.weeklyQuota.showIcon !== false && ic ? `${ic} ` : '';
   const text = `${wglyph}${bar} ${pct.toFixed(0)}%`;
 
   return {

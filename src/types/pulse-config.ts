@@ -1,11 +1,14 @@
 // src/types/pulse-config.ts
 
+export type Language = 'zh' | 'en';
+
 export interface PulseConfig {
   theme: string;
   separator: string;
   padding: number;
   refreshInterval: number;
   iconSet: 'nerd' | 'text';
+  language: Language;
   /** Bumped when a one-time default migration applies (omit in older files). */
   schemaVersion?: number;
   modules: {
@@ -64,37 +67,38 @@ export interface AccountUsageModuleConfig extends ModuleConfig {
 
 export const DEFAULT_CONFIG: PulseConfig = {
   theme: 'dark',
-  separator: ' \u2502 ',
+  separator: ' │ ',
   padding: 1,
   refreshInterval: 5,
   iconSet: 'text',
-  schemaVersion: 3,
+  language: 'en',
+  schemaVersion: 4,
   modules: {
-    model: { enabled: true, order: 1, icon: '[模型]' },
-    context: {
+    model: { enabled: true, order: 1, icon: '[当前模型]' },
+    git: {
       enabled: true,
       order: 2,
+      showUpstream: false,
+      icon: '[Git 分支]'
+    },
+    workspace: { enabled: true, order: 3, icon: '[工作区]' },
+    context: {
+      enabled: true,
+      order: 4,
       showBar: true,
       showTokens: false,
       barWidth: 12,
       icon: '[上下文使用率]'
     },
-    git: {
-      enabled: true,
-      order: 3,
-      showUpstream: false,
-      icon: '[Git 分支]'
-    },
-    cost: { enabled: false, order: 4, icon: '[费用]' },
-    duration: { enabled: false, order: 5, icon: '[时长]' },
-    workspace: { enabled: false, order: 6, icon: '[工作区]' },
-    turns: { enabled: false, order: 7, icon: '[轮次]' },
-    cacheRatio: { enabled: false, order: 8, icon: '[缓存]' },
-    rateLimits: { enabled: false, order: 9, icon: '[限速]', showCountdown: true },
-    weeklyQuota: { enabled: false, order: 10, icon: '[配额]', showCountdown: true },
-    accountUsage: { enabled: true, order: 11, icon: '[账户]', providers: ['zhipu', 'deepseek'] },
-    mcpStatus: { enabled: false, order: 12, icon: '[MCP]' },
-    thinking: { enabled: false, order: 13, icon: '[思考]' },
+    cacheRatio: { enabled: true, order: 5, icon: '[缓存]' },
+    mcpStatus: { enabled: true, order: 6, icon: '[MCP]' },
+    accountUsage: { enabled: true, order: 7, icon: '[账户]', providers: ['zhipu', 'deepseek'] },
+    turns: { enabled: true, order: 8, icon: '[轮次]' },
+    thinking: { enabled: true, order: 9, icon: '[思考]' },
+    cost: { enabled: false, order: 10, icon: '[费用]' },
+    duration: { enabled: false, order: 11, icon: '[时长]' },
+    rateLimits: { enabled: false, order: 12, icon: '[限速]', showCountdown: true },
+    weeklyQuota: { enabled: false, order: 13, icon: '[配额]', showCountdown: true },
     outputStyle: { enabled: false, order: 14, icon: '[风格]' },
     thirdPartyApi: { enabled: false, order: 15, icon: '[API]', providers: [] }
   },

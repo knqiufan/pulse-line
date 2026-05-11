@@ -2,19 +2,23 @@
 
 import type { PulseConfig } from '../types/pulse-config';
 
-const CURRENT_SCHEMA = 3;
+const CURRENT_SCHEMA = 4;
 
-/**
- * Older installs used Nerd glyphs by default — force text once so common terminals avoid tofu.
- * After this runs, schemaVersion is CURRENT_SCHEMA; users may set iconSet to nerd again deliberately.
- */
 export function upgradePulseSchemaIfNeeded(config: PulseConfig): boolean {
   const v = config.schemaVersion ?? 0;
   if (v >= CURRENT_SCHEMA) return false;
 
-  if (config.iconSet === 'nerd') {
+  if (v < 3 && config.iconSet === 'nerd') {
     config.iconSet = 'text';
   }
+
+  if (v < 4) {
+    (config as any).language = (config as any).language ?? 'zh';
+    if (config.modules.model) {
+      config.modules.model.icon = '[当前模型]';
+    }
+  }
+
   config.schemaVersion = CURRENT_SCHEMA;
   return true;
 }

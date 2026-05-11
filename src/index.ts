@@ -59,8 +59,7 @@ async function main() {
       const ctx = extractContext(input);
       const barWidth = modules.context.barWidth || 12;
       const bar = renderProgressBar(ctx.percentage, barWidth);
-      const ctxIcon =
-        modules.context.icon ?? theme.components.context.icon ?? '';
+      const ctxIcon = modules.context.icon ?? theme.components.context.icon ?? '';
       const tail = `${bar} ${ctx.percentage.toFixed(0)}%`;
       const ctxText = ctxIcon ? `${ctxIcon} ${tail}` : tail;
       segments.push({ order: modules.context.order, text: colorize(theme.colors.success, ctxText) });
@@ -68,8 +67,7 @@ async function main() {
 
     // Account usage: refresh first, then render
     if (modules.accountUsage.enabled) {
-      const auIcon =
-        modules.accountUsage.icon ?? theme.components.accountUsage.icon ?? '[A]';
+      const auIcon = modules.accountUsage.icon ?? theme.components.accountUsage.icon ?? '[A]';
 
       await refreshAccountUsage(
         modules.accountUsage,
@@ -95,7 +93,8 @@ async function main() {
 
     // Git
     if (modules.git.enabled) {
-      const git = extractGit(input.cwd, input.session_id, theme);
+      const gitIcon = modules.git.icon;
+      const git = extractGit(input.cwd, input.session_id, theme, gitIcon);
       if (git) {
         segments.push({ order: modules.git.order, text: colorize(git.fg, git.text) });
       }
@@ -105,20 +104,20 @@ async function main() {
     if (modules.cost.enabled) {
       const cost = extractCost(input);
       if (cost) {
-        const icon =
-          modules.cost.icon ?? theme.components.cost.icon ?? '';
-        const line =
-          icon.length > 0 ? `${icon} ${cost.text}` : cost.text;
+        const icon = modules.cost.icon ?? theme.components.cost.icon ?? '';
+        const line = icon.length > 0 ? `${icon} ${cost.text}` : cost.text;
         segments.push({ order: modules.cost.order, text: colorize(theme.colors.warning, line) });
       }
     }
 
     // Duration
     if (modules.duration.enabled) {
+      const durIcon = modules.duration.icon;
       const duration = extractSessionDuration(
         input.session_id,
         input.transcript_path,
-        theme
+        theme,
+        durIcon
       );
       if (duration) {
         segments.push({ order: modules.duration.order, text: colorize(theme.colors.muted, duration.text) });
@@ -128,15 +127,15 @@ async function main() {
     // Workspace
     if (modules.workspace.enabled) {
       const ws = extractWorkspace(input);
-      const icon =
-        modules.workspace.icon ?? theme.components.workspace.icon ?? '';
+      const icon = modules.workspace.icon ?? theme.components.workspace.icon ?? '';
       const line = icon.length > 0 ? `${icon} ${ws.text}` : ws.text;
       segments.push({ order: modules.workspace.order, text: colorize(theme.colors.accent, line) });
     }
 
     // Turns
     if (modules.turns.enabled) {
-      const turns = extractTurns(input.transcript_path, theme);
+      const turnsIcon = modules.turns.icon;
+      const turns = extractTurns(input.transcript_path, theme, turnsIcon);
       if (turns) {
         segments.push({ order: modules.turns.order, text: colorize(theme.colors.info, turns.text) });
       }
@@ -146,8 +145,7 @@ async function main() {
     if (modules.cacheRatio.enabled) {
       const usage = input.context_window.current_usage;
       if (usage && usage.cache_read_input_tokens > 0) {
-        const icon =
-          modules.cacheRatio.icon ?? theme.components.cacheRatio.icon ?? '';
+        const icon = modules.cacheRatio.icon ?? theme.components.cacheRatio.icon ?? '';
         const cached = usage.cache_read_input_tokens;
         const label = cached >= 1_000_000
           ? `${(cached / 1_000_000).toFixed(1)}M`
@@ -161,7 +159,8 @@ async function main() {
 
     // Rate limits
     if (modules.rateLimits.enabled) {
-      const rl = extractRateLimits(input, theme);
+      const rlIcon = modules.rateLimits.icon;
+      const rl = extractRateLimits(input, theme, rlIcon);
       if (rl) {
         segments.push({ order: modules.rateLimits.order, text: colorize(rl.fg, rl.text) });
       }
@@ -169,7 +168,8 @@ async function main() {
 
     // Weekly quota
     if (modules.weeklyQuota.enabled) {
-      const wq = extractWeeklyQuota(input, theme);
+      const wqIcon = modules.weeklyQuota.icon;
+      const wq = extractWeeklyQuota(input, theme, wqIcon);
       if (wq) {
         segments.push({ order: modules.weeklyQuota.order, text: colorize(wq.fg, wq.text) });
       }
@@ -177,7 +177,8 @@ async function main() {
 
     // MCP status
     if (modules.mcpStatus.enabled) {
-      const mcp = extractMcpStatus(theme);
+      const mcpIcon = modules.mcpStatus.icon;
+      const mcp = extractMcpStatus(theme, mcpIcon);
       if (mcp) {
         segments.push({ order: modules.mcpStatus.order, text: colorize(theme.colors.muted, mcp.text) });
       }
@@ -185,7 +186,8 @@ async function main() {
 
     // Thinking
     if (modules.thinking.enabled) {
-      const thinking = extractThinking(input, theme);
+      const thinkingIcon = modules.thinking.icon;
+      const thinking = extractThinking(input, theme, config.language, thinkingIcon);
       if (thinking) {
         segments.push({ order: modules.thinking.order, text: colorize(theme.colors.accent, thinking.text) });
       }
