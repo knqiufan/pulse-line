@@ -39,7 +39,7 @@ No global install needed — `npx` fetches and runs the latest version automatic
 - **5 Built-in Themes** — Dark, Light, Cyberpunk, Forest, Ocean
 - **i18n Support** — English (default) and Chinese, switchable via `/pulse-line:language`
 - **3rd Party API Usage** — Monitor Zhipu (GLM), DeepSeek, MiniMax account balance and quota
-- **Configurable Layout** — Custom module order, 3 segments per row, customizable separators
+- **Configurable Layout** — Custom module order, configurable segments per row (default 5), customizable separators
 - **Slash Commands** — 11 built-in commands for easy management
 
 ## Usage
@@ -120,6 +120,7 @@ Config file: `~/.claude/pulse/config.json`
   "iconSet": "text",
   "separator": " │ ",
   "padding": 1,
+  "maxPerLine": 5,
   "modules": {
     "model": { "enabled": true, "order": 1, "icon": "[Model]" },
     "git": { "enabled": true, "order": 2, "icon": "[Git]" },
@@ -198,7 +199,7 @@ claude --plugin-dir /path/to/pulse-line
 - **5 个内置主题** — Dark、Light、Cyberpunk、Forest、Ocean
 - **国际化支持** — 默认英文，中文可通过 `/pulse-line:language zh` 切换
 - **第三方 API 用量** — 监控智谱 (GLM)、DeepSeek、MiniMax 账户余额和配额
-- **可配置布局** — 自定义模块顺序，每行 3 个指标，可自定义分隔符
+- **可配置布局** — 自定义模块顺序，每行显示数量可配置（默认 5），可自定义分隔符
 - **斜杠命令** — 11 个内置命令，方便管理
 
 ## 使用方法
@@ -279,6 +280,7 @@ pulse-line config  # 编辑 accountUsage 模块的 providers 数组
   "iconSet": "text",
   "separator": " │ ",
   "padding": 1,
+  "maxPerLine": 5,
   "modules": {
     "model": { "enabled": true, "order": 1, "icon": "[Model]" },
     "git": { "enabled": true, "order": 2, "icon": "[Git]" },

@@ -49,7 +49,7 @@ export function renderLayout(
   const pad = Math.max(0, options.padding);
   const paddedSep = `${' '.repeat(pad)}${sepInner}${' '.repeat(pad)}`;
   const sepColor = theme.separator.color;
-  const maxPerLine = options.maxPerLine || 3;
+  const maxPerLine = options.maxPerLine || 5;
 
   const lines: string[] = [];
   for (let i = 0; i < segments.length; i += maxPerLine) {

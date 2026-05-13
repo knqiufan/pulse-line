@@ -117,6 +117,12 @@ export function validateConfig(config: PulseConfig): string[] {
     errors.push('padding must be between 0 and 10');
   }
 
+  if (config.maxPerLine !== undefined) {
+    if (!Number.isInteger(config.maxPerLine) || config.maxPerLine < 1 || config.maxPerLine > 20) {
+      errors.push('maxPerLine must be an integer between 1 and 20');
+    }
+  }
+
   if (config.iconSet !== 'nerd' && config.iconSet !== 'text') {
     errors.push('iconSet must be "nerd" or "text"');
   }

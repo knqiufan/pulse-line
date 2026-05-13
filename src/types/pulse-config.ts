@@ -6,7 +6,7 @@ export interface PulseConfig {
   theme: string;
   separator: string;
   padding: number;
-  maxPerLine: number;
+  maxPerLine?: number;
   refreshInterval: number;
   iconSet: 'nerd' | 'text';
   language: Language;
