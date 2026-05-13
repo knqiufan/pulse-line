@@ -18,6 +18,8 @@
     "dist/",
     "bin/",
     "commands/",
+    "hooks/",
+    "scripts/",
     ".claude-plugin/",
     "skills/"
   ],
