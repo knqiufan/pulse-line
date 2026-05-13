@@ -218,7 +218,8 @@ async function main() {
     segments.sort((a, b) => a.order - b.order);
     const layoutOpts = {
       separator: config.separator,
-      padding: config.padding
+      padding: config.padding,
+      maxPerLine: config.maxPerLine
     };
     const output = renderLayout(
       segments.map((s) => ({ text: s.text })),
