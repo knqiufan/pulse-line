@@ -22,6 +22,19 @@ function saveAndInvalidate(config: import('./types/pulse-config').PulseConfig): 
   removeSessionCacheKey('global', CONFIG_CACHE_KEY);
 }
 
+function tryInstallPlugin(): boolean {
+  try {
+    execSync('claude plugin install pulse-line', {
+      stdio: 'pipe',
+      timeout: 15000
+    });
+    console.log('[OK] Plugin registered — slash commands (/pulse-line:*) are available');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const program = new Command();
 
 program
@@ -56,12 +69,24 @@ program
         console.log('[OK] statusLine.command configured in settings.json');
       }
 
-      console.log('Config directory:', pulseDir);
-      console.log('Edit config:', getConfigPath());
+      console.log('[OK] Config directory:', pulseDir);
+      console.log('[OK] Config file:', getConfigPath());
+
+      const hasPlugin = tryInstallPlugin();
+
+      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log(' Pulse Line installed successfully!');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       console.log('\nNext steps:');
-      console.log('1. Restart Claude Code');
-      console.log('2. The status bar will appear automatically');
-      console.log('3. Run "pulse-line theme <name>" to change theme');
+      console.log('  1. Restart Claude Code');
+      console.log('  2. The status bar will appear automatically');
+      console.log('  3. Run "pulse-line theme <name>" to change theme');
+      if (!hasPlugin) {
+        console.log('\n💡 Want slash commands like /pulse-line:theme?');
+        console.log('   Run the following in Claude Code:');
+        console.log('   /plugin marketplace add knqiufan/pulse-line');
+        console.log('   /plugin install pulse-line');
+      }
     } catch (err) {
       console.error('[ERROR] Installation failed:', err instanceof Error ? err.message : err);
       process.exit(1);

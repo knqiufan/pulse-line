@@ -46,6 +46,12 @@ npx -y pulse-line@latest install
 
 这条命令会自动完成所有配置，执行后重启 Claude Code 即可。
 
+> **注意**：此方式会自动尝试注册插件。如果你还需要 `/pulse-line:*` 斜杠命令，请在 Claude Code 中额外执行：
+> ```
+> /plugin marketplace add knqiufan/pulse-line
+> /plugin install pulse-line
+> ```
+
 ### 方式三：全局安装
 
 ```bash

@@ -46,6 +46,12 @@ npx -y pulse-line@latest install
 
 This command handles all configuration automatically. Restart Claude Code afterwards.
 
+> **Note**: This method will attempt to register the plugin automatically. If you also need `/pulse-line:*` slash commands, run the following in Claude Code:
+> ```
+> /plugin marketplace add knqiufan/pulse-line
+> /plugin install pulse-line
+> ```
+
 ### Option 3: Global Install
 
 ```bash
