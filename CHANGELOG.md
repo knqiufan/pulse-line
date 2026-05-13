@@ -5,7 +5,40 @@ All notable changes to pulse-line will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-01-08
+## [Unreleased]
+
+### Planned
+
+- Additional themes
+- More third-party API integrations
+- Enhanced customization options
+- Plugin marketplace listing
+
+## [1.0.2] - 2026-05-13
+
+### Added
+
+- `maxPerLine` configuration to limit how many status segments render per line
+
+### Changed
+
+- NPM package ships `hooks/` and `scripts/` (alongside existing plugin and command assets); README refresh for installation and feature overview
+
+## [1.0.1] - 2026-05-12
+
+### Fixed
+
+- Language switching and cache-clearing command behavior edge cases
+- Test runner portability: macOS/Windows/Linux and Node 18/20 CI via `scripts/test.js` (replacing brittle `find` / glob patterns)
+- Provider-credentials related tests isolated from local `settings.json`; test glob issues on macOS
+
+### Changed
+
+- Documentation and help text prefer `npx pulse-line …` for consistent invocation
+- CI: NPM publish gated on version tags; `package.json` and workflow paths aligned
+- Repository hygiene: stop tracking `node_modules`
+
+## [1.0.0] - 2026-05-10
 
 ### Added
 
@@ -17,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactive CLI commands: install, uninstall, theme, config, reload, enable, disable, debug
 - Plugin packaging for Claude Code marketplace
 - Cross-platform support (Windows, macOS, Linux)
-- Zero third-party dependencies in production (Node.js built-ins only)
+- CLI via Commander.js; core status pipeline oriented around Node.js built-ins
 - High performance: P99 < 1ms
 - Comprehensive test suite with 48+ test cases
 - Three-level caching system for optimal performance
@@ -49,12 +82,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Theme tests: All 5 themes validated
 - Third-party API tests: Graceful degradation
 - Benchmark tests: Performance validation
-
-## [Unreleased]
-
-### Planned
-
-- Additional themes
-- More third-party API integrations
-- Enhanced customization options
-- Plugin marketplace listing
