@@ -6,6 +6,7 @@ export interface PulseConfig {
   theme: string;
   separator: string;
   padding: number;
+  maxPerLine: number;
   refreshInterval: number;
   iconSet: 'nerd' | 'text';
   language: Language;
@@ -69,6 +70,7 @@ export const DEFAULT_CONFIG: PulseConfig = {
   theme: 'dark',
   separator: ' │ ',
   padding: 1,
+  maxPerLine: 5,
   refreshInterval: 5,
   iconSet: 'text',
   language: 'en',
