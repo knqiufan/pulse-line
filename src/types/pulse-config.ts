@@ -68,9 +68,15 @@ export interface AccountUsageModuleConfig extends ModuleConfig {
 }
 
 export interface ToolTimelineModuleConfig extends ModuleConfig {
+  displayMode?: 'analytics-panel' | 'timeline-panel' | 'summary' | 'compact-list';
   mode?: 'summary' | 'compact-list';
   maxEvents?: number;
   maxDisplayEvents?: number;
+  panelWidth?: number;
+  showRecent?: boolean;
+  showTokenStats?: boolean;
+  showAgentStats?: boolean;
+  showSuccessRate?: boolean;
   slowThresholdMs?: number;
   showFailures?: boolean;
   showAverage?: boolean;
@@ -86,7 +92,7 @@ export const DEFAULT_CONFIG: PulseConfig = {
   refreshInterval: 5,
   iconSet: 'text',
   language: 'en',
-  schemaVersion: 5,
+  schemaVersion: 6,
   modules: {
     model: { enabled: true, order: 1, icon: '[当前模型]' },
     git: {
@@ -119,9 +125,15 @@ export const DEFAULT_CONFIG: PulseConfig = {
       enabled: false,
       order: 16,
       icon: '[工具]',
+      displayMode: 'analytics-panel',
       mode: 'summary',
       maxEvents: 100,
       maxDisplayEvents: 5,
+      panelWidth: 59,
+      showRecent: true,
+      showTokenStats: true,
+      showAgentStats: true,
+      showSuccessRate: true,
       slowThresholdMs: 3000,
       showFailures: true,
       showAverage: true,

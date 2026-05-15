@@ -1,8 +1,8 @@
 ---
-description: Show recent tool timeline events
+description: Debug/export collected tool analytics data
 ---
 
-# Tool Timeline
+# Tool Analytics Debug
 
 ## Command
 
@@ -12,7 +12,7 @@ description: Show recent tool timeline events
 
 ## Description
 
-Show recent Claude Code tool-call events collected by Pulse Line hooks.
+Show recent Claude Code tool-call events collected by Pulse Line hooks. The main analytics view appears directly in the statusline as an independent panel when `toolTimeline` is enabled; this command is only for debugging, export, and cache cleanup.
 
 ## Instructions
 

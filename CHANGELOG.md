@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Tool timeline collection via Claude Code `PostToolUse` / `PostToolUseFailure` hooks
-- `toolTimeline` status module with summary and compact-list rendering modes
-- `pulse-line timeline` CLI for table/JSON inspection and cache clearing
-- Tests for timeline cache, normalizer, rendering, CLI, themes, and schema migration
+- Tool analytics collection via Claude Code `PostToolUse` / `PostToolUseFailure` / `SubagentStop` hooks
+- Independent `toolTimeline` analytics panel with total calls, context tokens, main/subagent counts, slowest tool, and latest 5 calls
+- Agent telemetry aggregation for subagent tool count, token count, duration, and display names
+- i18n labels for the tool analytics panel
+- `pulse-line timeline` CLI for debug table/JSON inspection and cache clearing
+- Tests for analytics cache, normalizer, rendering, CLI, index integration, themes, and schema migration
 
 ### Planned
 

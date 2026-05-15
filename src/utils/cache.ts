@@ -43,7 +43,10 @@ export class TTLCache<T> {
 }
 
 export function getSessionCachePath(sessionId: string): string {
-  const cacheDir = path.join(os.homedir(), '.claude', 'pulse', 'cache');
+  const homeOverride = process.env.PULSE_HOME_OVERRIDE;
+  const cacheDir = homeOverride
+    ? path.join(path.resolve(homeOverride), 'cache')
+    : path.join(os.homedir(), '.claude', 'pulse', 'cache');
   return path.join(cacheDir, `${sessionId}.json`);
 }
 

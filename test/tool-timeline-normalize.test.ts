@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import * as path from 'path';
 import {
   normalizeClaudeToolHook,
+  normalizeClaudeSubagentStopHook,
   relativeToCwd,
   summarizeTool
 } from '../src/extractors/tool-timeline';
@@ -22,10 +23,83 @@ test('normalizeClaudeToolHook accepts successful Bash hook', () => {
   assert.strictEqual(event.id, 'claude-code:s1:toolu_1');
   assert.strictEqual(event.status, 'success');
   assert.strictEqual(event.displayName, 'Bash');
+  assert.strictEqual(event.actorKind, 'main-agent');
   assert.strictEqual(event.summary, 'run tests: npm test');
   assert.strictEqual(event.target?.kind, 'command');
   assert.strictEqual(event.durationMs, 1280);
   assert.strictEqual(event.responseSummary, 'stdout: ok');
+});
+
+test('normalizeClaudeToolHook extracts Agent telemetry', () => {
+  const event = normalizeClaudeToolHook({
+    session_id: 's1',
+    hook_event_name: 'PostToolUse',
+    tool_name: 'Agent',
+    tool_input: {
+      subagent_type: 'Explore',
+      description: 'Explore codebase'
+    },
+    tool_response: {
+      agentId: 'agent_explore_1',
+      status: 'success',
+      totalToolUseCount: 7,
+      totalTokens: 42100,
+      totalDurationMs: 18400
+    },
+    tool_use_id: 'toolu_agent_1',
+    duration_ms: 19000
+  });
+
+  assert.ok(event);
+  assert.strictEqual(event.displayName, 'Agent');
+  assert.strictEqual(event.summary, 'Explore');
+  assert.strictEqual(event.actorKind, 'main-agent');
+  assert.strictEqual(event.actorName, 'Explore');
+  assert.strictEqual(event.agentId, 'agent_explore_1');
+  assert.strictEqual(event.subagentType, 'Explore');
+  assert.strictEqual(event.subagentMetrics?.totalToolUseCount, 7);
+  assert.strictEqual(event.subagentMetrics?.totalTokens, 42100);
+  assert.strictEqual(event.subagentMetrics?.totalDurationMs, 18400);
+  assert.strictEqual(event.durationMs, 18400);
+});
+
+test('normalizeClaudeToolHook handles Agent without telemetry', () => {
+  const event = normalizeClaudeToolHook({
+    session_id: 's1',
+    hook_event_name: 'PostToolUse',
+    tool_name: 'Agent',
+    tool_input: { description: 'Review changes' },
+    tool_response: {},
+    duration_ms: 1200
+  });
+
+  assert.ok(event);
+  assert.strictEqual(event.summary, 'Review changes');
+  assert.strictEqual(event.subagentMetrics, undefined);
+  assert.strictEqual(event.durationMs, 1200);
+});
+
+test('normalizeClaudeSubagentStopHook extracts agent metadata', () => {
+  const meta = normalizeClaudeSubagentStopHook({
+    session_id: 's1',
+    hook_event_name: 'SubagentStop',
+    agent_id: 'agent_explore_1',
+    agent_type: 'Explore',
+    agent_transcript_path: 'D:\\tmp\\agent.jsonl'
+  });
+
+  assert.ok(meta);
+  assert.strictEqual(meta.agentId, 'agent_explore_1');
+  assert.strictEqual(meta.agentType, 'Explore');
+  assert.strictEqual(meta.displayName, 'Explore');
+  assert.strictEqual(meta.transcriptPath, 'D:\\tmp\\agent.jsonl');
+});
+
+test('normalizeClaudeSubagentStopHook rejects missing agent id', () => {
+  assert.strictEqual(normalizeClaudeSubagentStopHook({
+    session_id: 's1',
+    hook_event_name: 'SubagentStop'
+  }), null);
 });
 
 test('normalizeClaudeToolHook accepts failed Bash hook', () => {

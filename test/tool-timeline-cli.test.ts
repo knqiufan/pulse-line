@@ -59,6 +59,35 @@ test('CLI hook ignores invalid JSON with exit code 0', () => {
   });
 });
 
+test('CLI hook collect-subagent-event writes metadata and prints no stdout', () => {
+  withTimelineCache(() => {
+    const input = JSON.stringify({
+      session_id: 'cli-session',
+      hook_event_name: 'SubagentStop',
+      agent_id: 'agent_cli_1',
+      agent_type: 'Explore',
+      agent_transcript_path: 'D:\\tmp\\agent.jsonl'
+    });
+
+    const result = runCli(['hook', 'collect-subagent-event', '--provider', 'claude-code'], input);
+    assert.strictEqual(result.status, 0);
+    assert.strictEqual(result.stdout, '');
+
+    const cache = readToolTimelineCache('cli-session');
+    assert.ok(cache);
+    assert.strictEqual(cache.agents?.agent_cli_1.displayName, 'Explore');
+    assert.strictEqual(cache.events.length, 0);
+  });
+});
+
+test('CLI hook collect-subagent-event ignores invalid JSON with exit code 0', () => {
+  withTimelineCache(() => {
+    const result = runCli(['hook', 'collect-subagent-event', '--provider', 'claude-code'], '{bad');
+    assert.strictEqual(result.status, 0);
+    assert.strictEqual(result.stdout, '');
+  });
+});
+
 test('CLI timeline supports json, last, and clear', () => {
   withTimelineCache(() => {
     runCli(['hook', 'collect-tool-event', '--provider', 'claude-code'], hookInput);
@@ -73,6 +102,8 @@ test('CLI timeline supports json, last, and clear', () => {
     const parsed = JSON.parse(json.stdout);
     assert.strictEqual(parsed.events.length, 1);
     assert.strictEqual(parsed.events[0].summary, 'npm run build');
+    assert.ok(parsed.analyticsStats);
+    assert.strictEqual(parsed.analyticsStats.totalToolCalls, 1);
 
     const table = runCli(['timeline', '--session', 'cli-session', '--last', '1']);
     assert.strictEqual(table.status, 0);

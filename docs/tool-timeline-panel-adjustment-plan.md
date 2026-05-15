@@ -1,504 +1,820 @@
-# 工具时间线面板调整方案
+# 工具调用统计分析面板调整方案
 
 > 日期：2026-05-15
 >
-> 目标：将 `toolTimeline` 从普通状态栏片段调整为独立多行面板，只展示最近 5 条工具调用，并评估 Claude Code 内通过方向键选中面板项、Enter 查看详情的可行性。
+> 目标：将 `toolTimeline` 从“单纯工具时间线”调整为“工具调用统计分析面板”。面板应在 Claude Code 状态栏中独立展示工具调用总览、token、主 agent / 子 agent 工具使用、最耗时工具等指标，并保留最近 5 条调用作为辅助明细。
 
 ## 1. 需求重述
 
-当前实现的问题：
+当前“只显示最近工具时间线”的价值不足。用户真正想快速知道的是：
 
-- `toolTimeline` 被作为普通 segment 加入现有状态栏布局，显示为 `[工具] 3 calls avg ...`。
-- 用户只能看到统计摘要，看不到具体工具调用序列。
-- 详细信息主要依赖 `/pulse-line:timeline` 或 CLI 命令查看，这会打断用户当前对话流程，并可能导致额外 token 消耗。
+- 截至目前一共调用了多少工具。
+- 当前一共消耗了多少 token。
+- 主 agent 调用了几个工具。
+- 子 agent 调用了几个工具，并展示具体子 agent 名称。
+- 最耗时的是哪个 tool。
+- 最近发生了哪些关键工具调用。
+- 不希望主要依赖 `/pulse-line:timeline` 这种会进入 Claude Code 对话上下文的方式查看。
+- 该模块仍然不要嵌入普通状态栏片段，而是作为独立多行模块展示。
 
-期望效果：
+因此新目标不是“Tool Timeline”，而是“Tool Analytics Panel”。
 
-- 工具时间线不与现有状态栏片段混排。
-- 工具时间线作为独立模块另起一行显示。
-- 状态栏中直接展示最近 5 条工具调用，包括工具名、目标、耗时、状态、耗时条。
-- 不把 slash command 作为主要查看入口。
+## 2. 目标展示形态
 
-目标示例：
+建议默认展示一个紧凑的分析面板：
 
 ```text
 [当前模型] deepseek-v4-pro  │  [Git 分支] main  │  [工作区] status-bar-cc  │  [上下文使用率] ██░░░░░░░░░░ 19%  │  [缓存] 37.4K
 [MCP] 5 servers  │  [账户] DeepSeek: CN¥60.23  │  [轮次] 61 turns  │  [思考] 开启
 
 ═══════════════════════════════════════════════════════════
-   TOOL TIMELINE (Last 5 calls)
+   TOOL ANALYTICS
 ═══════════════════════════════════════════════════════════
-  [Read]   src/auth/jwt.ts      █░░░░░░░░░  45ms   ✓
-  [Bash]   git diff HEAD~3      ███░░░░░░░  320ms  ✓
-  [Edit]   src/auth/jwt.ts +3-1 ██░░░░░░░░  180ms  ✓
-  [Bash]   npm run test         ██████████  2.8s   ✓
-  [Bash]   git status           █░░░░░░░░░  38ms   ✓
-  ─────────────────────────────────────────────────────────
-   Success: 100%  │  Avg: 673ms  │  Total: 3.4s
+  Calls: 42  │  Tokens: 128.4K  │  Success: 95%
+  Main agent: 31 tools  │  Subagents: 11 tools / 2 agents
+  Subagents: Explore 7, Review 4
+  Slowest: Bash "npm run test" 9.0s
+  Recent:
+    [Read]  src/index.ts        45ms   ✓
+    [Bash]  npm run build       1.8s   ✓
+    [Edit]  src/cli.ts +3-1     220ms  ✓
+    [Agent] Explore             7 tools  42.1K tok  18.4s ✓
+    [Bash]  npm test            9.0s   ✗
 ═══════════════════════════════════════════════════════════
 ```
 
-## 2. 官方能力调研结论
+重点：
 
-### 2.1 Claude Code statusline 的能力边界
+- “统计分析”优先。
+- 最近 5 条调用只是辅助上下文。
+- 子 agent 单独统计，并展示名称。
+- token 指标清楚标注来源和语义。
 
-根据 Claude Code 官方 statusline 文档，statusline 是一个由 Claude Code 调用的本地命令：
+## 3. 官方能力调研结论
 
-- Claude Code 通过 stdin 向 statusline 命令传入 JSON。
-- statusline 命令通过 stdout 输出要展示的文本。
+### 3.1 statusline 可显示多行分析面板
+
+Claude Code statusline 是本地命令：
+
+- 从 stdin 接收 JSON。
+- 向 stdout 输出状态栏文本。
 - 支持多行输出。
 - 支持 ANSI 颜色。
-- 支持 OSC 8 超链接，主要用于鼠标点击打开链接。
-- 更新有 debounce，并且新的更新可能取消旧的 statusline 命令。
+- 支持 OSC 8 链接。
 
-这说明多行工具时间线面板是可行的，因为它本质上仍是 stdout 文本。
+所以独立多行分析面板可行。
 
-### 2.2 方向键选中面板项 + Enter 查看详情是否可行
+### 3.2 token 数据来源与限制
 
-结论：当前 Claude Code statusline 通道内不可行。
+Claude Code statusline JSON 包含：
+
+- `context_window.total_input_tokens`
+- `context_window.total_output_tokens`
+- `context_window.current_usage.input_tokens`
+- `context_window.current_usage.output_tokens`
+- `context_window.current_usage.cache_creation_input_tokens`
+- `context_window.current_usage.cache_read_input_tokens`
+
+官方文档说明：从 Claude Code v2.1.132 起，`context_window.total_input_tokens` 和 `total_output_tokens` 表示“当前 context window 中的 token”，不是累计会话总量。旧版本中它们曾是累计会话总量。
+
+因此面板中的 “Tokens” 要明确语义：
+
+```text
+Context tokens: 128.4K
+```
+
+不要误称为“会话累计 token”，除非我们另行从 hook 或 transcript 聚合。
+
+### 3.3 子 agent 数据来源
+
+Claude Code hooks 文档说明：
+
+- `PostToolUse` 的 `tool_name === 'Agent'` 时，`tool_response` 可包含子 agent telemetry：
+  - `status`
+  - `agentId`
+  - `content`
+  - `totalTokens`
+  - `totalDurationMs`
+  - `totalToolUseCount`
+  - `usage`
+- `SubagentStop` hook 可获得：
+  - `agent_id`
+  - `agent_type`
+  - `agent_transcript_path`
+  - `last_assistant_message`
+
+这意味着子 agent 统计可以通过两条路径构建：
+
+1. 主路径：在 `PostToolUse` 里识别 `Agent` 工具调用，并读取 `tool_response.totalToolUseCount`、`totalTokens`、`totalDurationMs`。
+2. 辅助路径：增加 `SubagentStop` hook，用 `agent_id -> agent_type` 建立 agent 名称映射。
+
+如果只依赖 `Agent` 工具的 `tool_input`，通常也能拿到 `subagent_type` / `agent_type` / `description` 一类字段，但字段稳定性不如官方明确列出的 `SubagentStop.agent_type`。
+
+### 3.4 方向键选中 + Enter 查看详情
+
+结论：Claude Code statusline 内不可实现。
 
 原因：
 
 - statusline 输出不是可获得键盘焦点的 TUI 组件。
-- 官方文档没有提供 statusline item selection、focus、keydown、Enter callback 等 API。
-- statusline 命令是短生命周期渲染进程，输出完成后进程退出，无法持续监听方向键。
-- Claude Code 的方向键属于主交互输入区域，statusline 无法接管这些键盘事件。
-- OSC 8 链接可用于鼠标点击，但不能实现“向下方向键选中、Enter 激活”的键盘导航语义。
+- 官方没有提供 selection、focus、keydown、Enter callback API。
+- statusline 命令是短生命周期渲染命令，输出结束后进程退出。
+- 方向键和 Enter 属于 Claude Code 主输入区域，statusline 无法接管。
 
-因此，不能在 Claude Code 原生 statusline 中实现：
+可替代：
 
-```text
-按 ↓ 选中工具时间线某一项 -> 按 Enter 查看详情
-```
+- 状态栏面板直接展示核心分析数据。
+- `pulse-line timeline --watch` 可作为外部终端 TUI 增强，不消耗对话 token。
+- OSC 8 鼠标点击可作为实验增强，但不能满足方向键选择。
 
-### 2.3 可替代交互方案
+## 4. 新产品定义
 
-可行替代方案如下：
-
-| 方案 | 可行性 | 是否消耗对话 token | 说明 |
-|------|--------|------------------|------|
-| 状态栏直接展示最近 5 条 | 高 | 否 | 本次主方案 |
-| OSC 8 鼠标点击链接 | 中 | 否 | 可点击打开本地详情页或执行外部 URI，但键盘选择不可控 |
-| 外部 TUI `pulse-line timeline --watch` | 高 | 否 | 在独立终端查看，不占 Claude Code 对话 |
-| Slash command 查看详情 | 高 | 是/可能 | 不作为主路径 |
-| 写入本地 HTML 报告并提供 file/link | 中 | 否 | 适合历史分析，不适合即时键盘导航 |
-
-推荐：
-
-- MVP 只做“状态栏多行面板展示最近 5 条”。
-- 保留 CLI 作为调试和导出工具。
-- 可选增强 `pulse-line timeline --watch` 外部 TUI，不进入 Claude Code 主输入流。
-- OSC 8 链接可以后续作为鼠标增强，但不承诺方向键/Enter 交互。
-
-## 3. 新架构设计
-
-当前架构：
+模块命名可继续叫 `toolTimeline` 以保持配置兼容，但用户可见概念应改为：
 
 ```text
-所有模块 -> segments[] -> renderLayout() -> 单一状态栏布局
+工具分析 / Tool Analytics
 ```
 
-调整为：
+建议在配置中引入：
+
+```ts
+displayMode?: 'analytics-panel' | 'timeline-panel' | 'summary' | 'compact-list';
+```
+
+默认使用：
+
+```ts
+displayMode: 'analytics-panel'
+```
+
+## 5. 数据模型调整
+
+当前 `ToolTimelineEvent` 能表达单次工具调用，但不足以表达 agent 维度统计。建议扩展为“事件 + 聚合”的模型。
+
+### 5.1 扩展事件模型
+
+```ts
+export type ToolTimelineActorKind = 'main-agent' | 'subagent' | 'unknown';
+
+export interface ToolTimelineEvent {
+  id: string;
+  provider: ToolTimelineProvider;
+  sessionId: string;
+  actorKind?: ToolTimelineActorKind;
+  actorName?: string;
+  agentId?: string;
+  subagentType?: string;
+  toolUseId?: string;
+  transcriptPath?: string | null;
+  cwd?: string;
+  toolName: string;
+  displayName: string;
+  summary: string;
+  status: ToolTimelineStatus;
+  startedAt?: string;
+  endedAt: string;
+  durationMs?: number;
+  target?: ToolTimelineTarget;
+  inputSummary?: string;
+  responseSummary?: string;
+  errorSummary?: string;
+
+  tokenUsage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+    cacheCreationInputTokens?: number;
+    cacheReadInputTokens?: number;
+    totalTokens?: number;
+  };
+
+  subagentMetrics?: {
+    totalToolUseCount?: number;
+    totalTokens?: number;
+    totalDurationMs?: number;
+  };
+}
+```
+
+解释：
+
+- 普通工具调用：`actorKind = 'main-agent'`。
+- `Agent` 工具调用完成后：作为一条特殊事件，记录子 agent 名称、工具数、token、耗时。
+- 如果后续解析子 agent transcript，可把子 agent 内部工具调用也落为单独事件，`actorKind = 'subagent'`。
+
+### 5.2 新增 agent 元数据
+
+```ts
+export interface ToolTimelineAgentMeta {
+  agentId: string;
+  agentType?: string;
+  displayName: string;
+  transcriptPath?: string;
+  lastSeenAt: string;
+}
+```
+
+来源：
+
+- `SubagentStop.agent_id`
+- `SubagentStop.agent_type`
+- `SubagentStop.agent_transcript_path`
+- `PostToolUse Agent.tool_response.agentId`
+
+### 5.3 扩展统计模型
+
+```ts
+export interface ToolAnalyticsStats {
+  totalToolCalls: number;
+  success: number;
+  failure: number;
+  unknown: number;
+  successRate: number;
+
+  mainAgentToolCalls: number;
+  subagentToolCalls: number;
+  subagentCount: number;
+  bySubagent: Record<string, {
+    agentId?: string;
+    toolCalls: number;
+    tokens?: number;
+    durationMs?: number;
+  }>;
+
+  contextTokens?: {
+    inputTokens: number;
+    outputTokens: number;
+    cacheCreationInputTokens: number;
+    cacheReadInputTokens: number;
+    totalTokens: number;
+    source: 'statusline-context-window';
+  };
+
+  subagentTokens?: number;
+  observedTokens?: number;
+
+  totalDurationMs?: number;
+  avgDurationMs?: number;
+  slowest?: {
+    toolName: string;
+    summary: string;
+    durationMs: number;
+    actorName?: string;
+  };
+
+  byTool: Record<string, number>;
+}
+```
+
+注意 token 字段：
+
+- `contextTokens` 来自 statusline 当前 context window。
+- `subagentTokens` 来自 Agent tool_response telemetry。
+- `observedTokens` 可定义为当前可观测 token 合计，但必须避免与 context window 重复计算。
+
+MVP 建议只显示：
 
 ```text
-普通状态栏模块 -> normalSegments[] -> renderLayout()
-工具时间线模块 -> standalonePanels[] -> renderToolTimelinePanel()
-最终输出 -> normalLayout + "\n" + timelinePanel
+Context tokens: 128.4K
+Subagent tokens: 42.1K
 ```
 
-关键变化：
+不要强行给出“总消耗 token”，因为数据源语义不同。
 
-- `toolTimeline` 不再进入 `segments.push()`。
-- `toolTimeline` 不参与 `maxPerLine` 普通分行。
-- `toolTimeline` 由独立 block renderer 输出多行面板。
-- 如果没有 cache 或没有事件，则不输出面板，避免空白占位。
+## 6. 数据采集方案
 
-## 4. 配置调整
+### 6.1 继续保留 PostToolUse / PostToolUseFailure
 
-建议 schema 从 v5 升到 v6。
+普通工具：
 
-扩展 `ToolTimelineModuleConfig`：
+- `Bash`
+- `Read`
+- `Write`
+- `Edit`
+- `MultiEdit`
+- `Grep`
+- `Glob`
+- `WebFetch`
+- `WebSearch`
+- `mcp__*`
+
+这些计入：
+
+```text
+mainAgentToolCalls += 1
+totalToolCalls += 1
+```
+
+### 6.2 Agent 工具特殊处理
+
+当 `tool_name === 'Agent'`：
+
+从 `tool_input` 尝试提取：
+
+- `subagent_type`
+- `agent_type`
+- `description`
+- `prompt` 摘要
+
+从 `tool_response` 提取：
+
+- `agentId`
+- `totalToolUseCount`
+- `totalTokens`
+- `totalDurationMs`
+- `usage`
+- `status`
+
+计数策略：
+
+- `Agent` 工具本身是主 agent 的一次工具调用。
+- 子 agent 内部工具数来自 `tool_response.totalToolUseCount`。
+
+推荐统计：
+
+```text
+totalToolCalls = mainAgentToolCalls + subagentToolCalls
+mainAgentToolCalls 包含 Agent 这次调用本身
+subagentToolCalls = sum(Agent.tool_response.totalToolUseCount)
+```
+
+示例：
+
+```text
+Main agent: 31 tools
+Subagents: 11 tools / 2 agents
+Total calls: 42
+```
+
+这样用户能理解：
+
+- 主 agent 发起了多少工具。
+- 子 agent 内部又执行了多少工具。
+
+### 6.3 增加 SubagentStop hook
+
+建议在 `hooks/hooks.json` 增加：
+
+```json
+"SubagentStop": [
+  {
+    "matcher": ".*",
+    "hooks": [
+      {
+        "type": "command",
+        "command": "node \"${CLAUDE_PLUGIN_ROOT}/dist/src/cli.js\" hook collect-subagent-event --provider claude-code",
+        "timeout": 5
+      }
+    ]
+  }
+]
+```
+
+新增 CLI 内部命令：
+
+```text
+pulse-line hook collect-subagent-event --provider claude-code
+```
+
+用途：
+
+- 记录 `agent_id -> agent_type`。
+- 记录子 agent transcript path。
+- 为 Agent tool_response 中只有 `agentId` 而缺少名称的场景补全名称。
+
+### 6.4 statusline token 快照
+
+由于 statusline stdin 才有 `context_window`，hook 事件不一定带 token。
+
+建议在 statusline 渲染时，不写入 cache，直接把当前 `input.context_window` 作为 render 参数传给分析面板：
+
+```ts
+renderToolAnalyticsPanel(
+  input.session_id,
+  modules.toolTimeline,
+  theme,
+  {
+    contextWindow: input.context_window,
+    cost: input.cost
+  }
+)
+```
+
+这样可以显示实时 context token，不需要额外 IO。
+
+## 7. 缓存结构调整
+
+当前：
+
+```text
+~/.claude/pulse/cache/tool-timeline/<session_id>.json
+```
+
+可继续使用，但 cache 内容扩展：
+
+```ts
+export interface ToolTimelineCache {
+  version: 2;
+  provider: ToolTimelineProvider;
+  sessionId: string;
+  updatedAt: string;
+  events: ToolTimelineEvent[];
+  agents?: Record<string, ToolTimelineAgentMeta>;
+  stats: ToolAnalyticsStats;
+}
+```
+
+兼容：
+
+- 读取 version 1 cache 时，按旧 `events` 重算基础 stats。
+- 新写入使用 version 2。
+
+## 8. 分析面板渲染设计
+
+新增：
+
+```ts
+export interface ToolAnalyticsPanel {
+  text: string;
+}
+
+export function renderToolAnalyticsPanel(
+  sessionId: string,
+  config: ToolTimelineModuleConfig,
+  theme: Theme,
+  snapshot?: {
+    contextWindow?: ContextWindow;
+    cost?: CostInfo;
+  }
+): ToolAnalyticsPanel | null
+```
+
+### 8.1 面板布局
+
+默认宽度 59。
+
+```text
+═══════════════════════════════════════════════════════════
+   TOOL ANALYTICS
+═══════════════════════════════════════════════════════════
+  Calls: 42  │  Context: 128.4K tok  │  Success: 95%
+  Main agent: 31 tools  │  Subagents: 11 tools / 2 agents
+  Subagents: Explore 7, Review 4
+  Slowest: Bash "npm run test" 9.0s
+  Recent:
+    [Read]  src/index.ts        45ms   ✓
+    [Bash]  npm run build       1.8s   ✓
+    [Edit]  src/cli.ts +3-1     220ms  ✓
+    [Agent] Explore             7 tools 42.1K tok 18.4s ✓
+    [Bash]  npm test            9.0s   ✗
+═══════════════════════════════════════════════════════════
+```
+
+### 8.2 最近 5 条调用
+
+只展示最近 5 条“顶层可读事件”：
+
+- 普通工具事件。
+- Agent 聚合事件。
+
+是否展开子 agent 内部工具：
+
+- MVP 不展开。
+- 子 agent 内部工具以 `Agent` 聚合行展示。
+- 后续如果解析 `agent_transcript_path`，可支持展开。
+
+### 8.3 指标语义
+
+`Calls`：
+
+```text
+mainAgentToolCalls + subagentToolCalls
+```
+
+`Context`：
+
+```text
+input_tokens + output_tokens + cache_creation_input_tokens + cache_read_input_tokens
+```
+
+来源是当前 statusline context window。
+
+`Subagents`：
+
+```text
+子 agent 内部工具数 / 子 agent 数量
+```
+
+`Slowest`：
+
+- 普通工具用 `durationMs`。
+- Agent 聚合事件用 `tool_response.totalDurationMs` 优先。
+- 如果 Agent 工具本身也有 `duration_ms`，优先使用 response 的 totalDurationMs，因为它代表子 agent 完整运行耗时。
+
+## 9. 配置调整
+
+建议 schema v6：
 
 ```ts
 export interface ToolTimelineModuleConfig extends ModuleConfig {
-  displayMode?: 'panel' | 'summary' | 'compact-list';
+  displayMode?: 'analytics-panel' | 'timeline-panel' | 'summary' | 'compact-list';
   maxEvents?: number;
-  maxDisplayEvents?: number;
+  maxDisplayEvents?: number; // 默认 5
   panelWidth?: number;
-  barWidth?: number;
-  showHeader?: boolean;
-  showFooterStats?: boolean;
-  slowThresholdMs?: number;
-  showFailures?: boolean;
-  showAverage?: boolean;
+  showRecent?: boolean;
+  showTokenStats?: boolean;
+  showAgentStats?: boolean;
   showSlowest?: boolean;
+  showSuccessRate?: boolean;
+  slowThresholdMs?: number;
   summaryMaxLength?: number;
 }
 ```
 
-默认配置：
+默认：
 
 ```ts
 toolTimeline: {
   enabled: false,
   order: 16,
   icon: '[工具]',
-  displayMode: 'panel',
+  displayMode: 'analytics-panel',
   maxEvents: 100,
   maxDisplayEvents: 5,
   panelWidth: 59,
-  barWidth: 10,
-  showHeader: true,
-  showFooterStats: true,
-  slowThresholdMs: 3000,
-  showFailures: true,
-  showAverage: true,
+  showRecent: true,
+  showTokenStats: true,
+  showAgentStats: true,
   showSlowest: true,
+  showSuccessRate: true,
+  slowThresholdMs: 3000,
   summaryMaxLength: 80
 }
 ```
 
-兼容策略：
+## 10. 国际化设计
 
-- 保留旧字段 `mode`，但 v6 migration 将 `mode: 'summary' | 'compact-list'` 映射到 `displayMode`。
-- 默认迁移后使用 `displayMode: 'panel'`，满足新需求。
-- CLI 的 `timeline` 命令继续保留。
+工具调用统计分析面板必须接入现有 `language` 配置，不应固定只显示英文。
 
-## 5. 渲染设计
-
-新增渲染函数：
+新增 i18n 标签建议：
 
 ```ts
-export interface ToolTimelinePanel {
-  text: string;
-}
+// zh
+toolAnalyticsTitle: '工具分析',
+toolAnalyticsCalls: '调用',
+toolAnalyticsContext: '上下文',
+toolAnalyticsTokens: 'tokens',
+toolAnalyticsSuccess: '成功',
+toolAnalyticsMainAgent: '主 agent',
+toolAnalyticsSubagents: '子 agent',
+toolAnalyticsAgents: 'agents',
+toolAnalyticsTools: 'tools',
+toolAnalyticsSlowest: '最慢',
+toolAnalyticsRecent: '最近',
+toolAnalyticsNone: '暂无工具调用',
+toolAnalyticsUnknownAgent: '未知 agent',
 
-export function renderToolTimelinePanel(
-  sessionId: string,
-  config: ToolTimelineModuleConfig,
-  theme: Theme,
-  iconOverride?: string
-): ToolTimelinePanel | null
+// en
+toolAnalyticsTitle: 'TOOL ANALYTICS',
+toolAnalyticsCalls: 'Calls',
+toolAnalyticsContext: 'Context',
+toolAnalyticsTokens: 'tok',
+toolAnalyticsSuccess: 'Success',
+toolAnalyticsMainAgent: 'Main agent',
+toolAnalyticsSubagents: 'Subagents',
+toolAnalyticsAgents: 'agents',
+toolAnalyticsTools: 'tools',
+toolAnalyticsSlowest: 'Slowest',
+toolAnalyticsRecent: 'Recent',
+toolAnalyticsNone: 'No tool calls',
+toolAnalyticsUnknownAgent: 'Unknown agent',
 ```
 
-输入：
+实现要求：
 
-- 读取 `readToolTimelineCache(sessionId, 'claude-code')`。
-- 取最近 `maxDisplayEvents` 条，默认 5。
-- 重新基于这 5 条计算局部 stats，用于 footer。
+- `renderToolAnalyticsPanel()` 接收 `language` 或 `labels`。
+- 面板标题、统计项名称、空状态文案、未知 agent 文案都从 i18n 获取。
+- 工具名如 `Bash`、`Read`、`Edit` 保留原名，不翻译，避免与 Claude Code 工具名不一致。
+- `tokens` 可在中文下保留英文缩写，因为 token 是技术指标；也可以显示为 `tokens`，不要翻译成“词元”以免影响理解。
+- `✓` / `✗` 状态符号不需要国际化。
+- 测试必须覆盖中英文面板输出。
 
-输出：
-
-- 多行字符串。
-- 第一版可先使用纯文本边框和符号，减少 ANSI 对齐风险。
-- 若使用 ANSI，只包整行颜色，不在列宽计算前插入 ANSI。
-
-### 5.1 行格式
-
-建议固定列：
+中文示例：
 
 ```text
-  [Tool]   Target/Summary        Bar         Duration Status
+═══════════════════════════════════════════════════════════
+   工具分析
+═══════════════════════════════════════════════════════════
+  调用: 42  │  上下文: 128.4K tokens  │  成功: 95%
+  主 agent: 31 tools  │  子 agent: 11 tools / 2 agents
+  子 agent: Explore 7, Review 4
+  最慢: Bash "npm run test" 9.0s
+  最近:
+    [Read]  src/index.ts        45ms   ✓
+═══════════════════════════════════════════════════════════
 ```
 
-示例：
+英文示例：
 
 ```text
-  [Read]   src/index.ts          █░░░░░░░░░  45ms   ✓
-  [Bash]   npm test              ████████░░  1.8s   ✗
+═══════════════════════════════════════════════════════════
+   TOOL ANALYTICS
+═══════════════════════════════════════════════════════════
+  Calls: 42  │  Context: 128.4K tok  │  Success: 95%
+  Main agent: 31 tools  │  Subagents: 11 tools / 2 agents
+  Subagents: Explore 7, Review 4
+  Slowest: Bash "npm run test" 9.0s
+  Recent:
+    [Read]  src/index.ts        45ms   ✓
+═══════════════════════════════════════════════════════════
 ```
 
-列宽建议：
+## 11. `src/index.ts` 接入调整
 
-- tool column：8 chars，左对齐，例如 `[Bash]`
-- summary column：20-24 chars，根据 `panelWidth` 截断
-- bar column：`barWidth`，默认 10
-- duration column：6 chars，右对齐
-- status column：1 char
-
-### 5.2 耗时条计算
-
-只基于当前展示的 5 条计算比例：
-
-```text
-ratio = event.durationMs / max(durationMs among displayed events)
-filled = clamp(round(ratio * barWidth), 1, barWidth)
-```
-
-无 duration 的事件：
-
-```text
-░░░░░░░░░░  -
-```
-
-如果 duration 超过 `slowThresholdMs`：
-
-- 后续可使用 warning 色。
-- 纯文本 MVP 中只通过满格和 footer 表达。
-
-### 5.3 状态符号
-
-```text
-success -> ✓
-failure -> ✗
-unknown -> ?
-```
-
-如果考虑 ASCII-only 模式，可配置为：
-
-```text
-success -> OK
-failure -> ERR
-unknown -> UNK
-```
-
-当前项目已有中文和 Unicode 进度条，优先使用 `✓/✗` 可以接受。
-
-### 5.4 Footer 统计
-
-Footer 只统计展示的 5 条：
-
-```text
-Success: 80%  │  Avg: 673ms  │  Total: 3.4s
-```
-
-原因：
-
-- 标题写的是 `Last 5 calls`。
-- footer 统计应与用户看见的行一致。
-- 全量统计可继续由 CLI 提供。
-
-## 6. 数据摘要增强
-
-当前 cache 已有：
-
-- `toolName`
-- `displayName`
-- `summary`
-- `status`
-- `durationMs`
-- `target`
-
-这足够渲染基础面板。
-
-建议增强：
+当前错误方向：
 
 ```ts
-interface ToolTimelineEvent {
-  ...
-  changeSummary?: string; // Edit/MultiEdit: +3-1
-  panelLabel?: string;    // 面板专用短标签
-}
+segments.push({ order, text: '[工具] 3 calls avg ...' });
 ```
 
-短期可先不改模型，直接在 normalizer 阶段把 summary 做得更适合面板：
-
-- `Read`: `src/auth/jwt.ts`
-- `Bash`: `npm run test`
-- `Edit`: `src/auth/jwt.ts +3-1`
-- `MultiEdit`: `src/auth/jwt.ts (3 edits)`
-- `Grep`: `grep <pattern>`
-- `Glob`: `glob <pattern>`
-- `WebFetch`: `example.com/docs`
-- `MCP`: `fs.read`
-
-Edit 行数计算策略：
-
-- `Edit`: 如果有 `old_string` / `new_string`，按换行数粗略计算 `+n-m`。
-- `MultiEdit`: 聚合每个 edit 的 `old_string` / `new_string`。
-- 若无法计算，显示 `edit <file>` 或 `multi-edit <file> (n)`。
-
-## 7. `src/index.ts` 接入方案
-
-当前：
+新方向：
 
 ```ts
-if (modules.toolTimeline.enabled) {
-  const timeline = extractToolTimeline(...);
-  if (timeline) {
-    segments.push({
-      order: modules.toolTimeline.order,
-      text: colorize(timeline.fg, timeline.text)
-    });
-  }
-}
-```
-
-调整：
-
-```ts
-const segments: OrderedSegment[] = [];
-const panels: string[] = [];
-
-// 普通模块仍然进入 segments
+const panels: Array<{ order: number; text: string }> = [];
 
 if (modules.toolTimeline.enabled) {
-  const panel = renderToolTimelinePanel(
+  const panel = renderToolAnalyticsPanel(
     input.session_id,
     modules.toolTimeline,
     theme,
-    modules.toolTimeline.icon
+    {
+      contextWindow: input.context_window,
+      cost: input.cost
+    }
   );
+
   if (panel) {
-    panels.push(panel.text);
+    panels.push({
+      order: modules.toolTimeline.order,
+      text: panel.text
+    });
   }
 }
 
+segments.sort(...);
+panels.sort(...);
+
 const normalOutput = renderLayout(...);
-const output = [normalOutput, ...panels].filter(Boolean).join('\n');
-console.log(output);
+const output = [
+  normalOutput,
+  ...panels.map((p) => p.text)
+].filter(Boolean).join('\n');
 ```
 
-注意：
+## 12. CLI 与 slash command 的新定位
 
-- `toolTimeline.order` 对独立面板不再参与普通 segment 排序。
-- 如果未来有多个独立面板，可以用 `panelOrder` 或复用 `order` 对 panels 排序。
-- 当前只一个独立面板，直接追加在普通状态栏之后即可。
+保留：
 
-## 8. CLI 和 Slash Command 定位调整
+```text
+pulse-line timeline
+pulse-line timeline --json
+pulse-line timeline clear
+```
 
-`pulse-line timeline` 保留，但定位改为：
+但文档中定位为：
 
-- 调试 cache。
-- 导出 JSON。
-- 清理 timeline cache。
-- 外部终端查看详情。
+- cache 调试。
+- JSON 导出。
+- 问题排查。
 
-文档中不再把 slash command 作为主查看路径。
+不作为主要查看入口。
 
 可选新增：
 
 ```text
-pulse-line timeline --watch
+pulse-line analytics
+pulse-line analytics --watch
 ```
 
-用于外部终端实时刷新，不消耗 Claude Code 对话 token。
+其中 `--watch` 是外部终端 TUI，可做到方向键选择和 Enter 查看详情，但不在 Claude Code statusline 内。
 
-## 9. 关于“方向键选中 + Enter 查看详情”的后续策略
+## 13. 方向键选中 + Enter 查看详情
 
-### 9.1 不在 statusline 内承诺
+保持原调研结论：
 
-不应把该交互写成可实现的验收目标，因为 Claude Code statusline 当前没有这类 API。
+- Claude Code statusline 内不可实现。
+- 不应承诺为验收目标。
 
-### 9.2 可做的近似增强
+如果后续要做交互详情，建议走外部 TUI：
 
-1. OSC 8 鼠标点击链接：
+```text
+pulse-line analytics --watch
+```
 
-   每一行渲染成可点击链接，例如：
+该命令可在独立终端里实现：
 
-   ```text
-   [Bash] npm run test
-   ```
+- 上下方向键移动选择。
+- Enter 展开工具详情。
+- q 退出。
+- 不消耗 Claude Code 对话 token。
 
-   链接目标可以是：
+## 14. 测试计划
 
-   - 本地 HTML 报告。
-   - `file://` 缓存详情。
-   - 自定义协议（不推荐，跨平台复杂）。
+### 14.1 normalizer 测试
 
-   限制：
+- Agent 工具成功事件能提取 `agentId`。
+- Agent 工具成功事件能提取 `totalToolUseCount`。
+- Agent 工具成功事件能提取 `totalTokens`。
+- Agent 工具成功事件能提取 `totalDurationMs`。
+- Agent 工具缺少 telemetry 时优雅降级。
+- SubagentStop hook 输入能记录 `agent_id -> agent_type`。
 
-   - 依赖终端/Claude Code 是否支持点击。
-   - 不是方向键选择。
-   - 打开详情体验不一定稳定。
+### 14.2 stats 测试
 
-2. 外部 TUI：
+- 总工具数 = 主 agent 工具数 + 子 agent 工具数。
+- Agent 工具本身计入主 agent 工具数。
+- 子 agent 工具数来自 `totalToolUseCount`。
+- `bySubagent` 按 agent 名称聚合。
+- `slowest` 能识别普通工具。
+- `slowest` 能识别 Agent 聚合耗时。
+- success rate 正确。
 
-   ```bash
-   pulse-line timeline --watch
-   ```
+### 14.3 render 测试
 
-   在独立终端中实现方向键和 Enter 完全可行，因为这是我们自己的进程和 TTY。
+- 面板包含 `TOOL ANALYTICS`。
+- 面板最多展示最近 5 条。
+- 面板展示 Calls、Context tokens、Success。
+- 面板展示 Main agent / Subagents。
+- 面板展示具体子 agent 名称和工具数。
+- 面板展示 Slowest。
+- 面板中文语言下显示 `工具分析`、`调用`、`最慢`。
+- 面板英文语言下显示 `TOOL ANALYTICS`、`Calls`、`Slowest`。
+- 无 cache 时返回 null。
+- cache 损坏时返回 null。
 
-   限制：
+### 14.4 index 集成测试
 
-   - 不在 Claude Code 内部。
-   - 需要用户额外打开终端。
+- tool analytics 面板不进入普通 `renderLayout()`。
+- 输出中不出现旧的 `[工具] 3 calls avg...` 内联摘要。
+- 输出中包含独立边框面板。
 
-3. Slash command：
+### 14.5 migration 测试
 
-   ```text
-   /pulse-line:timeline
-   ```
+- schema v5 -> v6 自动补 `displayMode: 'analytics-panel'`。
+- `maxDisplayEvents` 默认是 5。
+- 用户已有 `enabled`、`icon`、`maxEvents` 保留。
 
-   可用，但不推荐作为主路径，因为可能进入对话上下文并消耗 token。
-
-推荐优先级：
-
-1. 多行面板展示最近 5 条。
-2. 外部 `--watch` TUI 作为高级功能。
-3. OSC 8 点击作为实验功能。
-4. Slash command 仅保留调试用途。
-
-## 10. 测试计划
-
-新增/调整测试：
-
-- `tool-timeline-render.test.ts`
-  - panel 模式最多显示 5 条。
-  - 标题显示 `Last 5 calls`。
-  - 每行包含工具名、summary、bar、duration、status。
-  - footer success/avg/total 只统计展示的 5 条。
-  - failure 显示 `✗`。
-  - 无 cache 或空 events 返回 null。
-
-- `index` 集成测试
-  - 启用 `toolTimeline` 后输出包含独立面板边框。
-  - 普通状态栏中不再出现 `[工具] 3 calls avg...` 内联摘要。
-  - 普通模块布局仍受 `maxPerLine` 控制。
-
-- `migrate-config.test.ts`
-  - v5 到 v6 自动补 `displayMode: 'panel'`。
-  - `maxDisplayEvents` 默认是 5。
-  - 旧配置保留用户显式配置的 `maxEvents`、`icon` 等字段。
-
-- `normalizer` 测试
-  - `Edit` 能生成或保留适合面板的文件摘要。
-  - `MultiEdit` 至少显示编辑数量。
-  - 长命令和长路径不会撑破面板列宽。
-
-## 11. 验收标准
+## 15. 验收标准
 
 功能验收：
 
 - [ ] `toolTimeline` 不再嵌入普通状态栏片段。
-- [ ] 启用后在状态栏下方独立显示多行面板。
-- [ ] 面板只展示最近 5 条工具调用。
-- [ ] 每条展示工具名、调用目标/摘要、耗时条、耗时、状态。
-- [ ] Footer 展示最近 5 条的成功率、平均耗时、总耗时。
-- [ ] 不依赖 `/pulse-line:timeline` 查看主要信息。
-- [ ] cache 损坏时状态栏不报错、不输出半截面板。
+- [ ] 启用后显示独立 `TOOL ANALYTICS` 面板。
+- [ ] 面板展示总工具调用数。
+- [ ] 面板展示当前 context token。
+- [ ] 面板展示主 agent 工具数。
+- [ ] 面板展示子 agent 工具数和子 agent 名称。
+- [ ] 面板展示最耗时 tool。
+- [ ] 面板最多展示最近 5 条调用。
+- [ ] 不依赖 slash command 查看核心信息。
+- [ ] 面板文案跟随 `language` 在中英文之间切换。
 
-性能验收：
+数据准确性验收：
 
-- [ ] statusline 仍只读 timeline cache，不解析完整 transcript。
-- [ ] 面板渲染目标 < 5ms。
-- [ ] hook 写入目标维持 < 30ms。
+- [ ] 普通工具调用计入 main agent。
+- [ ] Agent 工具本身计入 main agent。
+- [ ] Agent response 中的 `totalToolUseCount` 计入 subagent tools。
+- [ ] Agent response 中的 `totalTokens` 计入 subagent token telemetry。
+- [ ] statusline context token 不误称为累计会话 token。
 
 交互验收：
 
-- [ ] 文档明确说明 Claude Code statusline 内无法实现方向键选中 + Enter 进入详情。
-- [ ] 如实现替代方案，不能误导为 Claude Code 原生键盘交互。
+- [ ] 文档明确说明 Claude Code statusline 内不能方向键选中 + Enter 进入详情。
+- [ ] 如做外部 TUI，明确其不在 Claude Code statusline 内。
 
 质量验收：
 
 - [ ] `npm run build` 通过。
 - [ ] `npm test` 通过。
-- [ ] 新增/更新测试覆盖 panel 渲染、schema migration、集成输出。
+- [ ] 新增测试覆盖 Agent telemetry、SubagentStop、analytics stats、panel render。
+- [ ] 新增测试覆盖工具分析面板 i18n。
 
-## 12. 实施顺序
+## 16. 实施顺序
 
-1. 扩展 `ToolTimelineModuleConfig`，schema 升级到 v6。
-2. 实现 `renderToolTimelinePanel()`，默认最近 5 条。
-3. 调整 `src/index.ts`，将 tool timeline 输出到独立 panels。
-4. 强化摘要，优先优化 `Read` / `Bash` / `Edit` / `MultiEdit`。
-5. 更新 README / README_EN / CHANGELOG，弱化 slash command 主路径。
-6. 更新测试。
-7. 手工验证真实 statusline 多行输出。
+1. 将方案和文档语义从 timeline 调整为 analytics。
+2. 扩展数据模型，支持 actor、agent、token、subagent metrics。
+3. 在 normalizer 中特殊处理 `tool_name === 'Agent'`。
+4. 增加 `collect-subagent-event` 内部 hook 命令。
+5. 扩展 cache，记录 agent metadata。
+6. 实现 `computeToolAnalyticsStats()`。
+7. 扩展 i18n 标签并让 `renderToolAnalyticsPanel()` 使用当前语言。
+8. 实现 `renderToolAnalyticsPanel()`。
+9. 调整 `src/index.ts`，把工具分析作为独立 panel 输出。
+10. 更新 README / README_EN / CHANGELOG。
+11. 补全测试并跑 build/test。
 
-## 13. 参考资料
+## 17. 参考资料
 
 - Claude Code statusline 文档：`https://docs.anthropic.com/en/docs/claude-code/statusline`
-- Claude Code interactive mode 文档：`https://docs.anthropic.com/en/docs/claude-code/interactive-mode`
+- Claude Code hooks 文档：`https://docs.anthropic.com/en/docs/claude-code/hooks`
 - 现有调研：`docs/four-ideas-deep-dive.md`
 - 当前已完成实施计划：`docs/implementation-plan-tool-timeline.md`

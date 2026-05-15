@@ -33,6 +33,18 @@
           }
         ]
       }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/dist/src/cli.js\" hook collect-subagent-event --provider claude-code",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }

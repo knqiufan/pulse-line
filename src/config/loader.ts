@@ -21,7 +21,7 @@ function persistIfMigrated(
 
 export function loadConfig(): PulseConfig {
   const configPath = getConfigPath();
-  const cacheKey = 'pulse-config-v5';
+  const cacheKey = 'pulse-config-v6';
 
   const cached = loadSessionCache<PulseConfig>('global', cacheKey);
   if (cached) {
@@ -87,10 +87,12 @@ export function saveConfig(config: PulseConfig): void {
 }
 
 export function getConfigPath(): string {
-  return path.join(os.homedir(), '.claude', 'pulse', 'config.json');
+  return path.join(getPulseDir(), 'config.json');
 }
 
 export function getPulseDir(): string {
+  const homeOverride = process.env.PULSE_HOME_OVERRIDE;
+  if (homeOverride) return path.resolve(homeOverride);
   return path.join(os.homedir(), '.claude', 'pulse');
 }
 

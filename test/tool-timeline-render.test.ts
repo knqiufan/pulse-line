@@ -3,7 +3,7 @@ import assert from 'node:assert';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { extractToolTimeline } from '../src/extractors/tool-timeline';
+import { extractToolTimeline, renderToolAnalyticsPanel } from '../src/extractors/tool-timeline';
 import { appendToolTimelineEvent } from '../src/tool-timeline/cache';
 import { darkTheme } from '../src/themes/builtin/dark';
 import type { ToolTimelineEvent } from '../src/types/tool-timeline';
@@ -106,5 +106,91 @@ test('extractToolTimeline honors summaryMaxLength and compact-list mode', () => 
     assert.ok(segment.text.includes('second command'));
     assert.ok(!segment.text.includes('first command'));
     assert.ok(segment.text.length <= 35);
+  });
+});
+
+test('renderToolAnalyticsPanel renders English analytics panel', () => {
+  withTimelineCache(() => {
+    appendToolTimelineEvent(event({ id: '1', toolName: 'Read', displayName: 'Read', summary: 'src/index.ts', durationMs: 45 }));
+    appendToolTimelineEvent(event({
+      id: '2',
+      toolName: 'Agent',
+      displayName: 'Agent',
+      summary: 'Explore',
+      actorName: 'Explore',
+      agentId: 'agent_1',
+      durationMs: 18400,
+      subagentMetrics: {
+        totalToolUseCount: 7,
+        totalTokens: 42100,
+        totalDurationMs: 18400
+      }
+    }));
+
+    const panel = renderToolAnalyticsPanel('s1', config({
+      displayMode: 'analytics-panel',
+      maxDisplayEvents: 5,
+      panelWidth: 59
+    }), darkTheme, 'en', {
+      contextWindow: {
+        total_input_tokens: 100,
+        total_output_tokens: 50,
+        context_window_size: 200000,
+        used_percentage: 1,
+        remaining_percentage: 99,
+        current_usage: {
+          input_tokens: 1000,
+          output_tokens: 200,
+          cache_creation_input_tokens: 300,
+          cache_read_input_tokens: 500
+        }
+      }
+    });
+
+    assert.ok(panel);
+    assert.ok(panel.text.includes('TOOL ANALYTICS'));
+    assert.ok(panel.text.includes('\n  Calls: 9'));
+    assert.ok(panel.text.includes('Calls: 9'));
+    assert.ok(panel.text.includes('Context: 2.0K tok'));
+    assert.ok(panel.text.includes('Success: 100%'));
+    assert.ok(panel.text.includes('Main agent: 2 tools'));
+    assert.ok(panel.text.includes('Subagents: 7 tools / 1 agents'));
+    assert.ok(panel.text.includes('Explore 7'));
+    assert.ok(panel.text.includes('Slowest: Agent "Explore" 18s'));
+    assert.ok(panel.text.includes('Recent:'));
+  });
+});
+
+test('renderToolAnalyticsPanel renders Chinese labels and caps recent calls at five', () => {
+  withTimelineCache(() => {
+    for (let i = 1; i <= 6; i++) {
+      appendToolTimelineEvent(event({
+        id: `${i}`,
+        toolUseId: `${i}`,
+        summary: `cmd ${i}`,
+        durationMs: i * 10
+      }));
+    }
+
+    const panel = renderToolAnalyticsPanel('s1', config({
+      displayMode: 'analytics-panel',
+      maxDisplayEvents: 10,
+      panelWidth: 59
+    }), darkTheme, 'zh');
+
+    assert.ok(panel);
+    assert.ok(panel.text.includes('工具分析'));
+    assert.ok(panel.text.includes('调用: 6'));
+    assert.ok(panel.text.includes('成功: 100%'));
+    assert.ok(panel.text.includes('最近:'));
+    assert.ok(!panel.text.includes('cmd 1'));
+    assert.ok(panel.text.includes('cmd 2'));
+    assert.ok(panel.text.includes('cmd 6'));
+  });
+});
+
+test('renderToolAnalyticsPanel returns null without cache', () => {
+  withTimelineCache(() => {
+    assert.strictEqual(renderToolAnalyticsPanel('missing', config(), darkTheme, 'en'), null);
   });
 });

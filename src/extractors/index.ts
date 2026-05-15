@@ -40,10 +40,12 @@ export { extractAccountUsageSync, refreshAccountUsage, type AccountUsageResult }
 
 export {
   extractToolTimeline,
+  renderToolAnalyticsPanel,
   normalizeClaudeToolHook,
+  normalizeClaudeSubagentStopHook,
   summarizeTool,
   summarizeResponse,
   summarizeError,
   relativeToCwd
 } from './tool-timeline';
-export type { ToolTimelineSegment } from './tool-timeline';
+export type { ToolAnalyticsPanel, ToolTimelineSegment } from './tool-timeline';

@@ -18,7 +18,7 @@
 
 ## 特性
 
-- **16 个模块** — 当前模型、Git 分支、上下文使用率、缓存、MCP 状态、账户用量、轮次、思考模式、工具时间线等
+- **16 个模块** — 当前模型、Git 分支、上下文使用率、缓存、MCP 状态、账户用量、轮次、思考模式、工具分析等
 - **5 个内置主题** — Dark、Light、Cyberpunk、Forest、Ocean
 - **国际化支持** — 中/英文切换
 - **第三方 API 监控** — 智谱 (GLM)、DeepSeek、MiniMax 账户余额和配额
@@ -76,7 +76,7 @@ pulse-line install
 | `/pulse-line:config` | 在编辑器中打开配置 |
 | `/pulse-line:reload` | 重新加载配置 |
 | `/pulse-line:clear-cache` | 清除缓存 |
-| `/pulse-line:timeline` | 查看最近工具调用时间线 |
+| `/pulse-line:timeline` | 调试/导出已采集的工具分析数据 |
 | `/pulse-line:debug` | 切换调试模式 |
 | `/pulse-line:uninstall` | 卸载配置 |
 
@@ -110,7 +110,7 @@ pulse-line timeline --last 20  # 查看最近工具调用
 | 配额 | `weeklyQuota` | ❌ 关闭 | Anthropic API 周配额 |
 | 输出风格 | `outputStyle` | ❌ 关闭 | 当前输出风格 |
 | 第三方 API | `thirdPartyApi` | ❌ 关闭 | 异步 API 供应商查询 |
-| 工具时间线 | `toolTimeline` | ❌ 关闭 | 最近工具调用摘要与 CLI 时间线 |
+| 工具分析 | `toolTimeline` | ❌ 关闭 | 独立工具调用统计分析面板，包含最近调用 |
 
 ## 配置
 
@@ -133,9 +133,10 @@ pulse-line timeline --last 20  # 查看最近工具调用
       "enabled": false,
       "order": 16,
       "icon": "[工具]",
-      "mode": "summary",
+      "displayMode": "analytics-panel",
       "maxEvents": 100,
-      "summaryMaxLength": 80
+      "maxDisplayEvents": 5,
+      "panelWidth": 59
     }
   },
   "advanced": {
@@ -157,9 +158,11 @@ pulse-line timeline --last 20  # 查看最近工具调用
 | `maxPerLine` | number (1-20) | 每行最多显示的模块数，默认 5 |
 | `iconSet` | `"text"` \| `"nerd"` | 图标模式，text 为 ASCII 安全字符 |
 
-## 工具时间线
+## 工具分析
 
-安装插件后，Pulse Line 会通过 Claude Code 的 `PostToolUse` / `PostToolUseFailure` hook 记录工具调用摘要到本地缓存，不上传任何遥测数据。状态栏模块默认关闭，可按需启用：
+安装插件后，Pulse Line 会通过 Claude Code 的 `PostToolUse` / `PostToolUseFailure` / `SubagentStop` hook 记录工具调用摘要和子 agent 元数据到本地缓存，不上传任何遥测数据。启用 `toolTimeline` 后，主视图会在普通状态栏下方显示独立的工具分析面板，展示总工具调用数、当前 context token、主 agent / 子 agent 工具数、子 agent 名称、最耗时工具和最近 5 条调用。
+
+`timeline` 命令保留为调试和导出入口，不再作为主要查看方式：
 
 ```bash
 pulse-line enable toolTimeline

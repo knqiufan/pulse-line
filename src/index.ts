@@ -19,7 +19,8 @@ import {
   extractThirdPartyApi,
   extractAccountUsageSync,
   refreshAccountUsage,
-  extractToolTimeline
+  extractToolTimeline,
+  renderToolAnalyticsPanel
 } from './extractors';
 import {
   renderLayout,
@@ -46,6 +47,7 @@ async function main() {
     debug('Rendering pulse for session:', input.session_id);
 
     const segments: OrderedSegment[] = [];
+    const panels: OrderedSegment[] = [];
 
     // Model
     if (modules.model.enabled) {
@@ -145,17 +147,37 @@ async function main() {
 
     // Tool timeline
     if (modules.toolTimeline.enabled) {
-      const timeline = extractToolTimeline(
-        input.session_id,
-        modules.toolTimeline,
-        theme,
-        modules.toolTimeline.icon
-      );
-      if (timeline) {
-        segments.push({
-          order: modules.toolTimeline.order,
-          text: colorize(timeline.fg, timeline.text)
-        });
+      const displayMode = modules.toolTimeline.displayMode || 'analytics-panel';
+      if (displayMode === 'analytics-panel' || displayMode === 'timeline-panel') {
+        const panel = renderToolAnalyticsPanel(
+          input.session_id,
+          modules.toolTimeline,
+          theme,
+          config.language,
+          {
+            contextWindow: input.context_window,
+            cost: input.cost
+          }
+        );
+        if (panel) {
+          panels.push({
+            order: modules.toolTimeline.order,
+            text: colorize(theme.colors.info, panel.text)
+          });
+        }
+      } else {
+        const timeline = extractToolTimeline(
+          input.session_id,
+          modules.toolTimeline,
+          theme,
+          modules.toolTimeline.icon
+        );
+        if (timeline) {
+          segments.push({
+            order: modules.toolTimeline.order,
+            text: colorize(timeline.fg, timeline.text)
+          });
+        }
       }
     }
 
@@ -233,16 +255,21 @@ async function main() {
 
     // Sort segments by configured order, then render
     segments.sort((a, b) => a.order - b.order);
+    panels.sort((a, b) => a.order - b.order);
     const layoutOpts = {
       separator: config.separator,
       padding: config.padding,
       maxPerLine: config.maxPerLine
     };
-    const output = renderLayout(
+    const normalOutput = renderLayout(
       segments.map((s) => ({ text: s.text })),
       theme,
       layoutOpts
     );
+    const output = [
+      normalOutput,
+      ...panels.map((panel) => panel.text)
+    ].filter(Boolean).join('\n');
     console.log(output);
 
     if (config.advanced.debugMode) {

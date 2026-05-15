@@ -15,11 +15,19 @@ import { DEFAULT_CONFIG } from './types/pulse-config';
 import { loadTheme, getBuiltinThemeNames } from './themes';
 import { removeSessionCacheKey } from './utils/cache';
 import { isValidLanguage, getAllLanguages, getLabels } from './i18n';
-import { appendToolTimelineEvent, clearToolTimelineCache, computeToolTimelineStats, listToolTimelineSessions, readToolTimelineCache } from './tool-timeline/cache';
-import { normalizeClaudeToolHook } from './extractors/tool-timeline';
+import {
+  appendToolTimelineEvent,
+  clearToolTimelineCache,
+  computeToolAnalyticsStats,
+  computeToolTimelineStats,
+  listToolTimelineSessions,
+  readToolTimelineCache,
+  upsertToolTimelineAgentMeta
+} from './tool-timeline/cache';
+import { normalizeClaudeSubagentStopHook, normalizeClaudeToolHook } from './extractors/tool-timeline';
 import type { ToolTimelineProvider, ToolTimelineEvent, ToolTimelineStats } from './types/tool-timeline';
 
-const CONFIG_CACHE_KEY = 'pulse-config-v5';
+const CONFIG_CACHE_KEY = 'pulse-config-v6';
 
 function saveAndInvalidate(config: import('./types/pulse-config').PulseConfig): void {
   saveConfig(config);
@@ -331,6 +339,38 @@ hook
     }
   });
 
+hook
+  .command('collect-subagent-event')
+  .description('Collect subagent metadata from stdin')
+  .option('--provider <provider>', 'Runtime provider', 'claude-code')
+  .action((options: { provider: string }) => {
+    try {
+      if (options.provider !== 'claude-code') return;
+
+      const raw = readStdinText().trim();
+      if (!raw) return;
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        return;
+      }
+
+      const meta = normalizeClaudeSubagentStopHook(parsed);
+      if (!meta) return;
+
+      const sessionId = typeof (parsed as { session_id?: unknown }).session_id === 'string'
+        ? (parsed as { session_id: string }).session_id
+        : '';
+      if (!sessionId) return;
+
+      upsertToolTimelineAgentMeta(sessionId, meta, 'claude-code');
+    } catch {
+      // Hooks must not break Claude Code agent execution.
+    }
+  });
+
 const timeline = program
   .command('timeline')
   .description('Show recent tool timeline events')
@@ -383,9 +423,10 @@ timeline.action((options: {
 
   const events = cache.events.slice(Math.max(0, cache.events.length - last));
   const stats = computeToolTimelineStats(events);
+  const analyticsStats = computeToolAnalyticsStats(events, cache.agents);
 
   if (options.json) {
-    console.log(JSON.stringify({ ...cache, events, stats }, null, 2));
+    console.log(JSON.stringify({ ...cache, events, stats, analyticsStats }, null, 2));
     return;
   }
 

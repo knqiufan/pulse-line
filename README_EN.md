@@ -18,7 +18,7 @@ Multi-theme support, i18n, and real-time monitoring
 
 ## Features
 
-- **16 Modules** — Model, Git branch, Context usage, Cache ratio, MCP status, Account usage, Turns, Thinking, Tool timeline, and more
+- **16 Modules** — Model, Git branch, Context usage, Cache ratio, MCP status, Account usage, Turns, Thinking, Tool analytics, and more
 - **5 Built-in Themes** — Dark, Light, Cyberpunk, Forest, Ocean
 - **i18n Support** — English and Chinese, switchable anytime
 - **3rd Party API Monitoring** — Track Zhipu (GLM), DeepSeek, MiniMax account balance and quota
@@ -76,7 +76,7 @@ pulse-line install
 | `/pulse-line:config` | Open config in editor |
 | `/pulse-line:reload` | Reload configuration |
 | `/pulse-line:clear-cache` | Clear all cached data |
-| `/pulse-line:timeline` | Show recent tool timeline |
+| `/pulse-line:timeline` | Debug/export collected tool analytics data |
 | `/pulse-line:debug` | Toggle debug mode |
 | `/pulse-line:uninstall` | Remove configuration |
 
@@ -110,7 +110,7 @@ pulse-line timeline --last 20  # Show recent tool calls
 | Weekly Quota | `weeklyQuota` | ❌ Off | Anthropic API weekly quota |
 | Output Style | `outputStyle` | ❌ Off | Current output style |
 | Third-party API | `thirdPartyApi` | ❌ Off | Async API provider query |
-| Tool Timeline | `toolTimeline` | ❌ Off | Recent tool-call summary and CLI timeline |
+| Tool Analytics | `toolTimeline` | ❌ Off | Independent tool-call analytics panel with recent calls |
 
 ## Configuration
 
@@ -133,9 +133,10 @@ Config file: `~/.claude/pulse/config.json` — open with `pulse-line config`.
       "enabled": false,
       "order": 16,
       "icon": "[Tool]",
-      "mode": "summary",
+      "displayMode": "analytics-panel",
       "maxEvents": 100,
-      "summaryMaxLength": 80
+      "maxDisplayEvents": 5,
+      "panelWidth": 59
     }
   },
   "advanced": {
@@ -157,9 +158,11 @@ Config file: `~/.claude/pulse/config.json` — open with `pulse-line config`.
 | `maxPerLine` | number (1-20) | Max modules per row, default 5 |
 | `iconSet` | `"text"` \| `"nerd"` | Icon mode; text is ASCII-safe |
 
-## Tool Timeline
+## Tool Analytics
 
-After plugin installation, Pulse Line records tool-call summaries locally through Claude Code `PostToolUse` / `PostToolUseFailure` hooks. No telemetry is uploaded. The status module is disabled by default and can be enabled when needed:
+After plugin installation, Pulse Line records tool-call summaries locally through Claude Code `PostToolUse` / `PostToolUseFailure` / `SubagentStop` hooks. No telemetry is uploaded. When `toolTimeline` is enabled, the main view is an independent analytics panel below the normal status bar. It shows total tool calls, current context tokens, main-agent and subagent tool counts, subagent names, the slowest tool, and the latest 5 calls.
+
+The `timeline` command is kept as a debug/export path. It is not required for normal viewing:
 
 ```bash
 pulse-line enable toolTimeline

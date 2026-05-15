@@ -3,7 +3,7 @@
 import type { PulseConfig } from '../types/pulse-config';
 import { DEFAULT_CONFIG } from '../types/pulse-config';
 
-const CURRENT_SCHEMA = 5;
+const CURRENT_SCHEMA = 6;
 
 export function upgradePulseSchemaIfNeeded(config: PulseConfig): boolean {
   const v = config.schemaVersion ?? 0;
@@ -26,6 +26,39 @@ export function upgradePulseSchemaIfNeeded(config: PulseConfig): boolean {
     );
   }
 
+  if (v < 6) {
+    ensureToolTimelineAnalyticsDefaults(config);
+  }
+
   config.schemaVersion = CURRENT_SCHEMA;
   return true;
+}
+
+function ensureToolTimelineAnalyticsDefaults(config: PulseConfig): void {
+  const defaults = DEFAULT_CONFIG.modules.toolTimeline;
+  const toolTimeline = (config.modules as any).toolTimeline;
+  if (!toolTimeline) {
+    (config.modules as any).toolTimeline = JSON.parse(JSON.stringify(defaults));
+    return;
+  }
+
+  toolTimeline.displayMode = toolTimeline.displayMode ?? defaults.displayMode;
+  toolTimeline.maxDisplayEvents = normalizePositiveNumber(
+    toolTimeline.maxDisplayEvents,
+    defaults.maxDisplayEvents
+  );
+  toolTimeline.panelWidth = normalizePositiveNumber(
+    toolTimeline.panelWidth,
+    defaults.panelWidth
+  );
+  toolTimeline.showRecent = toolTimeline.showRecent ?? defaults.showRecent;
+  toolTimeline.showTokenStats = toolTimeline.showTokenStats ?? defaults.showTokenStats;
+  toolTimeline.showAgentStats = toolTimeline.showAgentStats ?? defaults.showAgentStats;
+  toolTimeline.showSuccessRate = toolTimeline.showSuccessRate ?? defaults.showSuccessRate;
+}
+
+function normalizePositiveNumber(value: unknown, fallback: number | undefined): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? value
+    : fallback;
 }

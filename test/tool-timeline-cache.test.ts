@@ -6,10 +6,12 @@ import * as path from 'path';
 import {
   appendToolTimelineEvent,
   clearToolTimelineCache,
+  computeToolAnalyticsStats,
   computeToolTimelineStats,
   getToolTimelineCachePath,
   listToolTimelineSessions,
-  readToolTimelineCache
+  readToolTimelineCache,
+  upsertToolTimelineAgentMeta
 } from '../src/tool-timeline/cache';
 import type { ToolTimelineEvent } from '../src/types/tool-timeline';
 
@@ -55,12 +57,14 @@ test('appendToolTimelineEvent creates cache file and stats', () => {
 
     const cache = readToolTimelineCache('s1');
     assert.ok(cache);
+    assert.strictEqual(cache.version, 2);
     assert.strictEqual(cache.events.length, 2);
     assert.strictEqual(cache.stats.total, 2);
     assert.strictEqual(cache.stats.success, 1);
     assert.strictEqual(cache.stats.failure, 1);
     assert.strictEqual(cache.stats.avgDurationMs, 200);
     assert.strictEqual(cache.stats.slowest?.durationMs, 300);
+    assert.strictEqual(cache.analyticsStats?.totalToolCalls, 2);
     assert.ok(fs.existsSync(getToolTimelineCachePath('s1')));
   });
 });
@@ -137,4 +141,92 @@ test('computeToolTimelineStats ignores missing durations', () => {
   assert.strictEqual(stats.unknown, 1);
   assert.strictEqual(stats.avgDurationMs, 100);
   assert.strictEqual(stats.totalDurationMs, 100);
+});
+
+test('computeToolAnalyticsStats aggregates main and subagent calls', () => {
+  const stats = computeToolAnalyticsStats([
+    event({ id: '1', toolName: 'Read', displayName: 'Read', durationMs: 40 }),
+    event({
+      id: '2',
+      toolName: 'Agent',
+      displayName: 'Agent',
+      summary: 'Explore',
+      actorName: 'Explore',
+      agentId: 'agent_1',
+      durationMs: 18000,
+      subagentMetrics: {
+        totalToolUseCount: 7,
+        totalTokens: 42100,
+        totalDurationMs: 18400
+      }
+    }),
+    event({ id: '3', toolName: 'Bash', displayName: 'Bash', status: 'failure', durationMs: 9000 })
+  ]);
+
+  assert.strictEqual(stats.mainAgentToolCalls, 3);
+  assert.strictEqual(stats.subagentToolCalls, 7);
+  assert.strictEqual(stats.totalToolCalls, 10);
+  assert.strictEqual(stats.subagentCount, 1);
+  assert.strictEqual(stats.bySubagent.Explore.toolCalls, 7);
+  assert.strictEqual(stats.bySubagent.Explore.tokens, 42100);
+  assert.strictEqual(stats.subagentTokens, 42100);
+  assert.strictEqual(stats.slowest?.toolName, 'Agent');
+  assert.strictEqual(stats.slowest?.durationMs, 18400);
+  assert.strictEqual(stats.successRate, 67);
+});
+
+test('upsertToolTimelineAgentMeta adds and updates agent metadata', () => {
+  withTimelineCache(() => {
+    appendToolTimelineEvent(event({
+      id: 'agent-call',
+      toolName: 'Agent',
+      displayName: 'Agent',
+      agentId: 'agent_1',
+      actorName: 'Explore',
+      subagentMetrics: { totalToolUseCount: 3 }
+    }));
+
+    upsertToolTimelineAgentMeta('s1', {
+      agentId: 'agent_1',
+      agentType: 'Explore',
+      displayName: 'Explore',
+      transcriptPath: 'old.jsonl',
+      lastSeenAt: '2026-05-15T00:00:00.000Z'
+    });
+    upsertToolTimelineAgentMeta('s1', {
+      agentId: 'agent_1',
+      agentType: 'Review',
+      displayName: 'Review',
+      transcriptPath: 'new.jsonl',
+      lastSeenAt: '2026-05-15T00:01:00.000Z'
+    });
+
+    const cache = readToolTimelineCache('s1');
+    assert.ok(cache);
+    assert.strictEqual(cache.version, 2);
+    assert.strictEqual(cache.agents?.agent_1.displayName, 'Review');
+    assert.strictEqual(cache.agents?.agent_1.transcriptPath, 'new.jsonl');
+    assert.strictEqual(cache.analyticsStats?.subagentToolCalls, 3);
+  });
+});
+
+test('readToolTimelineCache accepts legacy version 1 cache', () => {
+  withTimelineCache(() => {
+    const cachePath = getToolTimelineCachePath('s1');
+    fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+    fs.writeFileSync(cachePath, JSON.stringify({
+      version: 1,
+      provider: 'claude-code',
+      sessionId: 's1',
+      updatedAt: new Date().toISOString(),
+      events: [event({ id: 'legacy', durationMs: 100 })],
+      stats: { total: 1, success: 1, failure: 0, unknown: 0, byTool: { Bash: 1 } }
+    }));
+
+    const cache = readToolTimelineCache('s1');
+    assert.ok(cache);
+    assert.strictEqual(cache.version, 1);
+    assert.strictEqual(cache.events.length, 1);
+    assert.strictEqual(cache.analyticsStats?.totalToolCalls, 1);
+  });
 });
