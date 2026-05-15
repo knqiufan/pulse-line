@@ -22,7 +22,7 @@ Multi-theme support, i18n, and real-time monitoring
 - **5 Built-in Themes** — Dark, Light, Cyberpunk, Forest, Ocean
 - **i18n Support** — English and Chinese, switchable anytime
 - **3rd Party API Monitoring** — Track Zhipu (GLM), DeepSeek, MiniMax account balance and quota
-- **Configurable Layout** — Custom module order, configurable segments per row (default 5), customizable separators
+- **Responsive Layout** — Custom module order, automatic width-aware wrapping, configurable row upper bound, customizable separators
 - **12 Slash Commands** — Manage everything from within Claude Code
 
 ## Quick Start
@@ -155,8 +155,12 @@ Config file: `~/.claude/pulse/config.json` — open with `pulse-line config`.
 | `language` | `"zh"` \| `"en"` | Display language |
 | `separator` | string | Separator between modules |
 | `padding` | number (0-10) | Spaces on each side of the separator |
-| `maxPerLine` | number (1-20) | Max modules per row, default 5 |
+| `maxPerLine` | number (1-20) | Upper bound for modules per row; actual wrapping also follows terminal width |
 | `iconSet` | `"text"` \| `"nerd"` | Icon mode; text is ASCII-safe |
+
+## Responsive Layout
+
+Pulse Line detects terminal width on Windows, macOS, and Linux, then wraps status modules before Claude Code truncates the line. `maxPerLine` remains an upper bound, while the actual number of modules per row is adjusted dynamically from the available width. The tool analytics panel also narrows to fit the current terminal.
 
 ## Tool Analytics
 

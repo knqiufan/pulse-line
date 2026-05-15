@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - i18n labels for the tool analytics panel
 - `pulse-line timeline` CLI for debug table/JSON inspection and cache clearing
 - Tests for analytics cache, normalizer, rendering, CLI, index integration, themes, and schema migration
+- Width-aware statusline layout that wraps modules before Claude Code truncates long lines
+- Cross-platform terminal width probing for Windows, macOS, and Linux
+
+### Fixed
+
+- Long status bars no longer hide trailing modules or the tool analytics panel on narrow terminals
+- Tool analytics panel narrows and wraps metric groups instead of relying on truncation
 
 ### Planned
 

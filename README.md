@@ -22,7 +22,7 @@
 - **5 个内置主题** — Dark、Light、Cyberpunk、Forest、Ocean
 - **国际化支持** — 中/英文切换
 - **第三方 API 监控** — 智谱 (GLM)、DeepSeek、MiniMax 账户余额和配额
-- **可配置布局** — 自定义模块顺序，每行显示数量可配置（默认 5），可自定义分隔符
+- **自适应布局** — 自定义模块顺序，按终端宽度自动换行，可配置每行模块数上限和分隔符
 - **12 个斜杠命令** — 在 Claude Code 中直接管理
 
 ## 快速开始
@@ -155,8 +155,12 @@ pulse-line timeline --last 20  # 查看最近工具调用
 | `language` | `"zh"` \| `"en"` | 显示语言 |
 | `separator` | string | 模块间的分隔符 |
 | `padding` | number (0-10) | 分隔符两侧的空格数 |
-| `maxPerLine` | number (1-20) | 每行最多显示的模块数，默认 5 |
+| `maxPerLine` | number (1-20) | 每行模块数上限，实际显示数量会按终端宽度自动调整 |
 | `iconSet` | `"text"` \| `"nerd"` | 图标模式，text 为 ASCII 安全字符 |
+
+## 自适应布局
+
+Pulse Line 会在 Windows、macOS 和 Linux 上探测终端宽度，并在 Claude Code 截断状态栏之前自动把指标项换到下一行。`maxPerLine` 仍然作为每行模块数上限，实际每行显示几个模块会根据当前终端宽度动态调整。工具分析面板也会跟随终端宽度收窄显示。
 
 ## 工具分析
 
