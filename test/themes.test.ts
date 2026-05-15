@@ -84,7 +84,8 @@ test('all themes should have all component styles', () => {
   const requiredComponents = [
     'model', 'context', 'contextBar', 'git', 'cost', 'duration',
     'workspace', 'turns', 'cacheRatio', 'rateLimit', 'weeklyQuota',
-    'accountUsage', 'mcpStatus', 'thinking', 'outputStyle', 'separator'
+    'accountUsage', 'mcpStatus', 'thinking', 'outputStyle', 'toolTimeline',
+    'separator'
   ];
 
   for (const theme of themes) {
@@ -92,4 +93,9 @@ test('all themes should have all component styles', () => {
       assert.ok(theme.components[comp as keyof typeof theme.components], `Theme ${theme.meta.name} missing component: ${comp}`);
     }
   }
+});
+
+test('loadTheme nerd overlays tool timeline icon', () => {
+  const t = loadTheme('dark', 'nerd');
+  assert.ok(t.components.toolTimeline.icon);
 });

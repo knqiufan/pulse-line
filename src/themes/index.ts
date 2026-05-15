@@ -36,6 +36,7 @@ function overlayNerdIcons(theme: Theme): Theme {
   theme.components.mcpStatus.icon = n.mcpStatus;
   theme.components.thinking.icon = n.thinking;
   theme.components.outputStyle.icon = n.outputStyle;
+  theme.components.toolTimeline.icon = n.toolTimeline;
   theme.separator.left = '\u{e0b0}';
   return theme;
 }

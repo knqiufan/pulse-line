@@ -20,4 +20,5 @@ export const enLabels: Record<string, string> = {
   outputStyle: 'Style',
   accountUsage: 'Account',
   thirdPartyApi: 'API',
+  toolTimeline: 'Tools',
 };

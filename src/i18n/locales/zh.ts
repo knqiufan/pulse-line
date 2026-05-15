@@ -20,4 +20,5 @@ export const zhLabels: Record<string, string> = {
   outputStyle: '风格',
   accountUsage: '账户',
   thirdPartyApi: 'API',
+  toolTimeline: '工具',
 };

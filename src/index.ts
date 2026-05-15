@@ -18,7 +18,8 @@ import {
   extractOutputStyle,
   extractThirdPartyApi,
   extractAccountUsageSync,
-  refreshAccountUsage
+  refreshAccountUsage,
+  extractToolTimeline
 } from './extractors';
 import {
   renderLayout,
@@ -139,6 +140,22 @@ async function main() {
       const turns = extractTurns(input.transcript_path, theme, turnsIcon);
       if (turns) {
         segments.push({ order: modules.turns.order, text: colorize(theme.colors.info, turns.text) });
+      }
+    }
+
+    // Tool timeline
+    if (modules.toolTimeline.enabled) {
+      const timeline = extractToolTimeline(
+        input.session_id,
+        modules.toolTimeline,
+        theme,
+        modules.toolTimeline.icon
+      );
+      if (timeline) {
+        segments.push({
+          order: modules.toolTimeline.order,
+          text: colorize(timeline.fg, timeline.text)
+        });
       }
     }
 

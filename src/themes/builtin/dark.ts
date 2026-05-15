@@ -41,6 +41,7 @@ export const darkTheme: Theme = {
     mcpStatus: { fg: '#a9b1d6', icon: '[MCP]', showIcon: true },
     thinking: { fg: '#bb9af7', icon: '[Think]', showIcon: true },
     outputStyle: { fg: '#a9b1d6', icon: '[S]', showIcon: true },
+    toolTimeline: { fg: '#7dcfff', icon: '[Tool]', showIcon: true },
     separator: { fg: '#565f89', dim: true, icon: '', showIcon: false }
   }
 };

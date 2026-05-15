@@ -14,6 +14,7 @@ export interface IconSet {
   thinking: string;
   outputStyle: string;
   accountUsage: string;
+  toolTimeline: string;
 }
 
 export const nerdIconSet: IconSet = {
@@ -30,5 +31,6 @@ export const nerdIconSet: IconSet = {
   mcpStatus: "󰃦",
   thinking: "󰂲",
   outputStyle: "󰀺",
-  accountUsage: "󰃦"
+  accountUsage: "󰃦",
+  toolTimeline: "[Tool]"
 };

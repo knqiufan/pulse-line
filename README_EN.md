@@ -18,12 +18,12 @@ Multi-theme support, i18n, and real-time monitoring
 
 ## Features
 
-- **15 Modules** — Model, Git branch, Context usage, Cache ratio, MCP status, Account usage, Turns, Thinking, and more
+- **16 Modules** — Model, Git branch, Context usage, Cache ratio, MCP status, Account usage, Turns, Thinking, Tool timeline, and more
 - **5 Built-in Themes** — Dark, Light, Cyberpunk, Forest, Ocean
 - **i18n Support** — English and Chinese, switchable anytime
 - **3rd Party API Monitoring** — Track Zhipu (GLM), DeepSeek, MiniMax account balance and quota
 - **Configurable Layout** — Custom module order, configurable segments per row (default 5), customizable separators
-- **11 Slash Commands** — Manage everything from within Claude Code
+- **12 Slash Commands** — Manage everything from within Claude Code
 
 ## Quick Start
 
@@ -76,6 +76,7 @@ pulse-line install
 | `/pulse-line:config` | Open config in editor |
 | `/pulse-line:reload` | Reload configuration |
 | `/pulse-line:clear-cache` | Clear all cached data |
+| `/pulse-line:timeline` | Show recent tool timeline |
 | `/pulse-line:debug` | Toggle debug mode |
 | `/pulse-line:uninstall` | Remove configuration |
 
@@ -87,6 +88,7 @@ pulse-line language en         # Switch to English
 pulse-line enable thinking     # Enable module
 pulse-line disable cost        # Disable module
 pulse-line clear-cache         # Clear cache
+pulse-line timeline --last 20  # Show recent tool calls
 ```
 
 ## Modules
@@ -108,6 +110,7 @@ pulse-line clear-cache         # Clear cache
 | Weekly Quota | `weeklyQuota` | ❌ Off | Anthropic API weekly quota |
 | Output Style | `outputStyle` | ❌ Off | Current output style |
 | Third-party API | `thirdPartyApi` | ❌ Off | Async API provider query |
+| Tool Timeline | `toolTimeline` | ❌ Off | Recent tool-call summary and CLI timeline |
 
 ## Configuration
 
@@ -125,7 +128,15 @@ Config file: `~/.claude/pulse/config.json` — open with `pulse-line config`.
     "model": { "enabled": true, "order": 1, "icon": "[Model]" },
     "git": { "enabled": true, "order": 2, "icon": "[Git]" },
     "workspace": { "enabled": true, "order": 3, "icon": "[Workspace]" },
-    "context": { "enabled": true, "order": 4, "showBar": true, "barWidth": 12 }
+    "context": { "enabled": true, "order": 4, "showBar": true, "barWidth": 12 },
+    "toolTimeline": {
+      "enabled": false,
+      "order": 16,
+      "icon": "[Tool]",
+      "mode": "summary",
+      "maxEvents": 100,
+      "summaryMaxLength": 80
+    }
   },
   "advanced": {
     "debugMode": false,
@@ -145,6 +156,18 @@ Config file: `~/.claude/pulse/config.json` — open with `pulse-line config`.
 | `padding` | number (0-10) | Spaces on each side of the separator |
 | `maxPerLine` | number (1-20) | Max modules per row, default 5 |
 | `iconSet` | `"text"` \| `"nerd"` | Icon mode; text is ASCII-safe |
+
+## Tool Timeline
+
+After plugin installation, Pulse Line records tool-call summaries locally through Claude Code `PostToolUse` / `PostToolUseFailure` hooks. No telemetry is uploaded. The status module is disabled by default and can be enabled when needed:
+
+```bash
+pulse-line enable toolTimeline
+pulse-line timeline
+pulse-line timeline --last 10
+pulse-line timeline --json
+pulse-line timeline clear
+```
 
 ## 3rd Party API Monitoring
 

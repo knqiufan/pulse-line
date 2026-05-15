@@ -41,6 +41,7 @@ export const lightTheme: Theme = {
     mcpStatus: { fg: '#71717a', icon: '[MCP]', showIcon: true },
     thinking: { fg: '#7c3aed', icon: '[Think]', showIcon: true },
     outputStyle: { fg: '#71717a', icon: '[S]', showIcon: true },
+    toolTimeline: { fg: '#0891b2', icon: '[Tool]', showIcon: true },
     separator: { fg: '#a1a1aa', icon: '', showIcon: false, dim: true }
   }
 };

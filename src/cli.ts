@@ -11,11 +11,15 @@ import {
   getConfigPath,
   getPulseDir
 } from './config/loader';
+import { DEFAULT_CONFIG } from './types/pulse-config';
 import { loadTheme, getBuiltinThemeNames } from './themes';
 import { removeSessionCacheKey } from './utils/cache';
 import { isValidLanguage, getAllLanguages, getLabels } from './i18n';
+import { appendToolTimelineEvent, clearToolTimelineCache, computeToolTimelineStats, listToolTimelineSessions, readToolTimelineCache } from './tool-timeline/cache';
+import { normalizeClaudeToolHook } from './extractors/tool-timeline';
+import type { ToolTimelineProvider, ToolTimelineEvent, ToolTimelineStats } from './types/tool-timeline';
 
-const CONFIG_CACHE_KEY = 'pulse-config-v4';
+const CONFIG_CACHE_KEY = 'pulse-config-v5';
 
 function saveAndInvalidate(config: import('./types/pulse-config').PulseConfig): void {
   saveConfig(config);
@@ -32,6 +36,71 @@ function tryInstallPlugin(): boolean {
     return true;
   } catch {
     return false;
+  }
+}
+
+function readStdinText(): string {
+  if (process.stdin.isTTY) return '';
+  try {
+    return fs.readFileSync(0, 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+function readToolTimelineMaxEvents(): number {
+  try {
+    const configPath = getConfigPath();
+    if (!fs.existsSync(configPath)) {
+      return DEFAULT_CONFIG.modules.toolTimeline.maxEvents || 100;
+    }
+    const raw = fs.readFileSync(configPath, 'utf8');
+    const parsed = JSON.parse(raw) as Partial<import('./types/pulse-config').PulseConfig>;
+    const maxEvents = parsed.modules?.toolTimeline?.maxEvents;
+    return typeof maxEvents === 'number' && Number.isFinite(maxEvents) && maxEvents > 0
+      ? Math.floor(maxEvents)
+      : DEFAULT_CONFIG.modules.toolTimeline.maxEvents || 100;
+  } catch {
+    return DEFAULT_CONFIG.modules.toolTimeline.maxEvents || 100;
+  }
+}
+
+function isTimelineProvider(value: string): value is ToolTimelineProvider {
+  return value === 'claude-code' || value === 'codex';
+}
+
+function formatDurationCell(ms?: number): string {
+  if (ms === undefined) return '-';
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  const seconds = ms / 1000;
+  if (seconds < 60) return seconds >= 10 ? `${Math.round(seconds)}s` : `${seconds.toFixed(1)}s`;
+  const minutes = Math.floor(seconds / 60);
+  const rest = Math.round(seconds % 60);
+  return `${minutes}m ${rest}s`;
+}
+
+function formatTimeCell(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '--:--:--';
+  return date.toLocaleTimeString('en-US', { hour12: false });
+}
+
+function renderTimelineTable(sessionId: string, events: ToolTimelineEvent[], stats: ToolTimelineStats): void {
+  console.log(`Session: ${sessionId}`);
+  const avg = stats.avgDurationMs === undefined ? '-' : formatDurationCell(stats.avgDurationMs);
+  console.log(`Total: ${stats.total}  Success: ${stats.success}  Failure: ${stats.failure}  Avg: ${avg}`);
+  console.log('');
+  console.log('Time      Tool        Status   Duration  Summary');
+  for (const event of events) {
+    const status = event.status === 'failure' ? 'ERR' : event.status === 'success' ? 'OK' : 'UNK';
+    const row = [
+      formatTimeCell(event.endedAt).padEnd(9),
+      event.displayName.slice(0, 10).padEnd(11),
+      status.padEnd(8),
+      formatDurationCell(event.durationMs).padEnd(9),
+      event.summary
+    ].join(' ');
+    console.log(row);
   }
 }
 
@@ -229,6 +298,100 @@ program
     });
   });
 
+const hook = program
+  .command('hook')
+  .description('Internal hook commands');
+
+hook
+  .command('collect-tool-event')
+  .description('Collect a tool timeline event from stdin')
+  .option('--provider <provider>', 'Runtime provider', 'claude-code')
+  .action((options: { provider: string }) => {
+    try {
+      if (options.provider !== 'claude-code') return;
+
+      const raw = readStdinText().trim();
+      if (!raw) return;
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        return;
+      }
+
+      const event = normalizeClaudeToolHook(parsed);
+      if (!event) return;
+
+      appendToolTimelineEvent(event, {
+        maxEvents: readToolTimelineMaxEvents()
+      });
+    } catch {
+      // Hooks must not break Claude Code tool execution.
+    }
+  });
+
+const timeline = program
+  .command('timeline')
+  .description('Show recent tool timeline events')
+  .option('--session <id>', 'Session id')
+  .option('--provider <provider>', 'Runtime provider', 'claude-code')
+  .option('--last <n>', 'Number of events to show', '20')
+  .option('--json', 'Print JSON');
+
+timeline
+  .command('clear')
+  .description('Clear tool timeline cache')
+  .option('--session <id>', 'Session id')
+  .option('--provider <provider>', 'Runtime provider', 'claude-code')
+  .action((options: { session?: string; provider: string }) => {
+    const provider = isTimelineProvider(options.provider) ? options.provider : 'claude-code';
+    clearToolTimelineCache(options.session, provider);
+    console.log('[OK] Tool timeline cache cleared');
+  });
+
+timeline.action((options: {
+  session?: string;
+  provider: string;
+  last: string;
+  json?: boolean;
+}) => {
+  const provider = isTimelineProvider(options.provider) ? options.provider : 'claude-code';
+  const sessionId = options.session ||
+    listToolTimelineSessions(provider)[0]?.sessionId;
+  const parsedLast = Number.parseInt(options.last, 10);
+  const last = Number.isFinite(parsedLast) && parsedLast > 0 ? parsedLast : 20;
+
+  if (!sessionId) {
+    if (options.json) {
+      console.log(JSON.stringify(null, null, 2));
+    } else {
+      console.log('No tool timeline cache found');
+    }
+    return;
+  }
+
+  const cache = readToolTimelineCache(sessionId, provider);
+  if (!cache) {
+    if (options.json) {
+      console.log(JSON.stringify(null, null, 2));
+    } else {
+      console.log(`No tool timeline cache found for session: ${sessionId}`);
+    }
+    return;
+  }
+
+  const events = cache.events.slice(Math.max(0, cache.events.length - last));
+  const stats = computeToolTimelineStats(events);
+
+  if (options.json) {
+    console.log(JSON.stringify({ ...cache, events, stats }, null, 2));
+    return;
+  }
+
+  renderTimelineTable(cache.sessionId, events, stats);
+});
+
 program
   .command('language <lang>')
   .description('Switch display language (zh, en)')
@@ -258,7 +421,8 @@ program
       thinking: 'thinking',
       outputStyle: 'outputStyle',
       accountUsage: 'accountUsage',
-      thirdPartyApi: 'thirdPartyApi'
+      thirdPartyApi: 'thirdPartyApi',
+      toolTimeline: 'toolTimeline'
     };
 
     for (const [modKey, labelKey] of Object.entries(moduleKeyMap)) {

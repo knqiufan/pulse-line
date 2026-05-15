@@ -20,6 +20,7 @@
     "./commands/config.md",
     "./commands/reload.md",
     "./commands/clear-cache.md",
+    "./commands/timeline.md",
     "./commands/debug.md",
     "./commands/uninstall.md"
   ],

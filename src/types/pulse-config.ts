@@ -28,6 +28,7 @@ export interface PulseConfig {
     outputStyle: ModuleConfig;
     thirdPartyApi: ThirdPartyApiConfig;
     accountUsage: AccountUsageModuleConfig;
+    toolTimeline: ToolTimelineModuleConfig;
   };
   advanced: {
     cacheEnabled: boolean;
@@ -66,6 +67,17 @@ export interface AccountUsageModuleConfig extends ModuleConfig {
   providers?: string[];
 }
 
+export interface ToolTimelineModuleConfig extends ModuleConfig {
+  mode?: 'summary' | 'compact-list';
+  maxEvents?: number;
+  maxDisplayEvents?: number;
+  slowThresholdMs?: number;
+  showFailures?: boolean;
+  showAverage?: boolean;
+  showSlowest?: boolean;
+  summaryMaxLength?: number;
+}
+
 export const DEFAULT_CONFIG: PulseConfig = {
   theme: 'dark',
   separator: ' │ ',
@@ -74,7 +86,7 @@ export const DEFAULT_CONFIG: PulseConfig = {
   refreshInterval: 5,
   iconSet: 'text',
   language: 'en',
-  schemaVersion: 4,
+  schemaVersion: 5,
   modules: {
     model: { enabled: true, order: 1, icon: '[当前模型]' },
     git: {
@@ -102,7 +114,20 @@ export const DEFAULT_CONFIG: PulseConfig = {
     rateLimits: { enabled: false, order: 12, icon: '[限速]', showCountdown: true },
     weeklyQuota: { enabled: false, order: 13, icon: '[配额]', showCountdown: true },
     outputStyle: { enabled: false, order: 14, icon: '[风格]' },
-    thirdPartyApi: { enabled: false, order: 15, icon: '[API]', providers: [] }
+    thirdPartyApi: { enabled: false, order: 15, icon: '[API]', providers: [] },
+    toolTimeline: {
+      enabled: false,
+      order: 16,
+      icon: '[工具]',
+      mode: 'summary',
+      maxEvents: 100,
+      maxDisplayEvents: 5,
+      slowThresholdMs: 3000,
+      showFailures: true,
+      showAverage: true,
+      showSlowest: true,
+      summaryMaxLength: 80
+    }
   },
   advanced: {
     cacheEnabled: true,

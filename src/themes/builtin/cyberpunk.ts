@@ -41,6 +41,7 @@ export const cyberpunkTheme: Theme = {
     mcpStatus: { fg: '#bd93f9', icon: '[MCP]', showIcon: true },
     thinking: { fg: '#ff79c6', icon: '[Think]', showIcon: true },
     outputStyle: { fg: '#bd93f9', icon: '[S]', showIcon: true },
+    toolTimeline: { fg: '#8be9fd', icon: '[Tool]', showIcon: true },
     separator: { fg: '#6272a4', icon: '', showIcon: false, dim: true }
   }
 };

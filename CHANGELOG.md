@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Tool timeline collection via Claude Code `PostToolUse` / `PostToolUseFailure` hooks
+- `toolTimeline` status module with summary and compact-list rendering modes
+- `pulse-line timeline` CLI for table/JSON inspection and cache clearing
+- Tests for timeline cache, normalizer, rendering, CLI, themes, and schema migration
+
 ### Planned
 
 - Additional themes

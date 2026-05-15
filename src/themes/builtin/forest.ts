@@ -41,6 +41,7 @@ export const forestTheme: Theme = {
     mcpStatus: { fg: '#d8f3dc', icon: '[MCP]', showIcon: true },
     thinking: { fg: '#b7e4c7', icon: '[Think]', showIcon: true },
     outputStyle: { fg: '#d8f3dc', icon: '[S]', showIcon: true },
+    toolTimeline: { fg: '#95d5b2', icon: '[Tool]', showIcon: true },
     separator: { fg: '#74c69d', icon: '', showIcon: false, dim: true }
   }
 };

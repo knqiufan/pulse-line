@@ -37,3 +37,13 @@ export { extractThirdPartyApi } from './third-party-api';
 export type { ApiUsageResult } from './third-party-api';
 
 export { extractAccountUsageSync, refreshAccountUsage, type AccountUsageResult } from './account-usage';
+
+export {
+  extractToolTimeline,
+  normalizeClaudeToolHook,
+  summarizeTool,
+  summarizeResponse,
+  summarizeError,
+  relativeToCwd
+} from './tool-timeline';
+export type { ToolTimelineSegment } from './tool-timeline';

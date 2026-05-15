@@ -15,6 +15,7 @@ export interface IconSet {
   thinking: string;
   outputStyle: string;
   accountUsage: string;
+  toolTimeline: string;
 }
 
 export const textIconSet: IconSet = {
@@ -31,5 +32,6 @@ export const textIconSet: IconSet = {
   mcpStatus: '[P]',
   thinking: '[Think]',
   outputStyle: '[S]',
-  accountUsage: '[A]'
+  accountUsage: '[A]',
+  toolTimeline: '[Tool]'
 };

@@ -39,6 +39,7 @@ export interface Theme {
     thinking: ComponentStyle;
     outputStyle: ComponentStyle;
     accountUsage: ComponentStyle;
+    toolTimeline: ComponentStyle;
     separator: ComponentStyle;
   };
 }

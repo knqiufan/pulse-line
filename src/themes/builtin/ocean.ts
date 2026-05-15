@@ -41,6 +41,7 @@ export const oceanTheme: Theme = {
     mcpStatus: { fg: '#e0f2fe', icon: '[MCP]', showIcon: true },
     thinking: { fg: '#818cf8', icon: '[Think]', showIcon: true },
     outputStyle: { fg: '#e0f2fe', icon: '[S]', showIcon: true },
+    toolTimeline: { fg: '#67e8f9', icon: '[Tool]', showIcon: true },
     separator: { fg: '#7dd3fc', icon: '', showIcon: false, dim: true }
   }
 };
