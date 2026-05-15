@@ -5,5 +5,5 @@ export { formatDuration } from './duration';
 export { renderSeparator } from './separator';
 export { renderSegment } from './segment';
 export type { SegmentData } from './segment';
-export { renderLayout } from './layout';
+export { renderLayout, visibleWidth } from './layout';
 export type { LayoutSegment, LayoutOptions } from './layout';

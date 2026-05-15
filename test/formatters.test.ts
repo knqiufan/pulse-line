@@ -4,6 +4,8 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import { renderProgressBar, getProgressColor } from '../src/formatters/progress-bar';
 import { formatDuration } from '../src/formatters/duration';
+import { renderLayout, visibleWidth } from '../src/formatters/layout';
+import { darkTheme } from '../src/themes/builtin/dark';
 
 test('renderProgressBar should render correct bar', () => {
   const bar = renderProgressBar(50, 12);
@@ -66,4 +68,47 @@ test('formatDuration should format hours correctly', () => {
 test('formatDuration should handle zero', () => {
   assert.strictEqual(formatDuration(0), '0s');
   assert.strictEqual(formatDuration(-1000), '0s');
+});
+
+test('visibleWidth ignores ANSI and counts wide characters', () => {
+  assert.strictEqual(visibleWidth('\x1b[31m[模型]\x1b[0m abc'), 10);
+});
+
+test('renderLayout wraps by terminal width before truncation can happen', () => {
+  const output = renderLayout([
+    { text: '[Model] deepseek-v4-pro' },
+    { text: '[Git] main' },
+    { text: '[Workspace] status-bar-cc' },
+    { text: '[Context] 27%' },
+    { text: '[Cache] 37.4K' }
+  ], darkTheme, {
+    separator: ' | ',
+    padding: 1,
+    maxPerLine: 5,
+    terminalWidth: 90
+  });
+
+  const lines = output.split('\n');
+  assert.strictEqual(lines.length, 2);
+  assert.ok(lines[0].includes('[Context] 27%'));
+  assert.ok(!lines[0].includes('[Cache] 37.4K'));
+  assert.ok(lines[1].includes('[Cache] 37.4K'));
+  for (const line of lines) {
+    assert.ok(visibleWidth(line) <= 90);
+  }
+});
+
+test('renderLayout still honors maxPerLine as an upper bound', () => {
+  const output = renderLayout([
+    { text: 'A' },
+    { text: 'B' },
+    { text: 'C' }
+  ], darkTheme, {
+    separator: '|',
+    padding: 0,
+    maxPerLine: 2,
+    terminalWidth: 100
+  });
+
+  assert.deepStrictEqual(output.split('\n'), ['A\x1b[38;2;86;95;137m|\x1b[0mB', 'C']);
 });

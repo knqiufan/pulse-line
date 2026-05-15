@@ -399,6 +399,7 @@ export function renderToolAnalyticsPanel(
   snapshot?: {
     contextWindow?: ContextWindow;
     cost?: CostInfo;
+    terminalWidth?: number;
   }
 ): ToolAnalyticsPanel | null {
   if (!sessionId) return null;
@@ -408,7 +409,7 @@ export function renderToolAnalyticsPanel(
 
   const labels = getLabels(language);
   const stats = cache.analyticsStats ?? computeToolAnalyticsStats(cache.events, cache.agents);
-  const width = clampNumber(Math.floor(config.panelWidth || 59), 40, 120);
+  const width = resolvePanelWidth(config.panelWidth, snapshot?.terminalWidth);
   const border = '\u2550'.repeat(width);
   const divider = '\u2500'.repeat(width);
   const title = centerText(label(labels, 'toolAnalyticsTitle', 'TOOL ANALYTICS'), width);
@@ -422,14 +423,13 @@ export function renderToolAnalyticsPanel(
   if (config.showSuccessRate !== false) {
     metricParts.push(`${label(labels, 'toolAnalyticsSuccess', 'Success')}: ${stats.successRate}%`);
   }
-  lines.push(fitLine(`  ${metricParts.join(`  \u2502  `)}`, width));
+  pushWrappedPanelItems(lines, metricParts, width);
 
   if (config.showAgentStats !== false) {
-    lines.push(fitLine(
-      `  ${label(labels, 'toolAnalyticsMainAgent', 'Main agent')}: ${stats.mainAgentToolCalls} ${label(labels, 'toolAnalyticsTools', 'tools')}  ` +
-      `\u2502  ${label(labels, 'toolAnalyticsSubagents', 'Subagents')}: ${stats.subagentToolCalls} ${label(labels, 'toolAnalyticsTools', 'tools')} / ${stats.subagentCount} ${label(labels, 'toolAnalyticsAgents', 'agents')}`,
-      width
-    ));
+    pushWrappedPanelItems(lines, [
+      `${label(labels, 'toolAnalyticsMainAgent', 'Main agent')}: ${stats.mainAgentToolCalls} ${label(labels, 'toolAnalyticsTools', 'tools')}`,
+      `${label(labels, 'toolAnalyticsSubagents', 'Subagents')}: ${stats.subagentToolCalls} ${label(labels, 'toolAnalyticsTools', 'tools')} / ${stats.subagentCount} ${label(labels, 'toolAnalyticsAgents', 'agents')}`
+    ], width);
 
     const subagentLine = renderSubagentList(stats, labels, width);
     if (subagentLine) lines.push(subagentLine);
@@ -507,6 +507,32 @@ function renderSubagentList(
     .map(([name, entry]) => `${name === 'Unknown agent' ? unknown : name} ${entry.toolCalls}`)
     .join(', ');
   return fitLine(`  ${label(labels, 'toolAnalyticsSubagents', 'Subagents')}: ${body}`, width);
+}
+
+function pushWrappedPanelItems(
+  lines: string[],
+  items: string[],
+  width: number
+): void {
+  const indent = '  ';
+  const separator = '  \u2502  ';
+  const available = Math.max(1, width - indent.length);
+  let current = '';
+
+  for (const item of items) {
+    const cleanItem = truncateText(item, available);
+    const next = current ? `${current}${separator}${cleanItem}` : cleanItem;
+    if (current && next.length > available) {
+      lines.push(fitLine(`${indent}${current}`, width));
+      current = cleanItem;
+    } else {
+      current = next;
+    }
+  }
+
+  if (current) {
+    lines.push(fitLine(`${indent}${current}`, width));
+  }
 }
 
 function renderRecentEventLine(
@@ -625,6 +651,15 @@ function padLeft(value: string, width: number): string {
 function clampNumber(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
   return Math.min(max, Math.max(min, value));
+}
+
+function resolvePanelWidth(configWidth: number | undefined, terminalWidth: number | undefined): number {
+  const preferred = Math.floor(configWidth || 59);
+  const terminal = typeof terminalWidth === 'number' && Number.isFinite(terminalWidth)
+    ? Math.floor(terminalWidth)
+    : undefined;
+  const maxWidth = terminal && terminal > 0 ? Math.min(120, terminal) : 120;
+  return clampNumber(preferred, 30, maxWidth);
 }
 
 export function stableHash(value: string): string {

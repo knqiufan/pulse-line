@@ -29,6 +29,7 @@ import {
 import { renderProgressBar } from './formatters/progress-bar';
 import { colorize } from './utils/ansi';
 import { debug } from './utils/logger';
+import { getTerminalWidth } from './utils/terminal-width';
 
 interface OrderedSegment {
   order: number;
@@ -43,6 +44,7 @@ async function main() {
     const config = loadConfig();
     const theme = loadTheme(config.theme, config.iconSet);
     const modules = config.modules;
+    const terminalWidth = getTerminalWidth();
 
     debug('Rendering pulse for session:', input.session_id);
 
@@ -156,7 +158,8 @@ async function main() {
           config.language,
           {
             contextWindow: input.context_window,
-            cost: input.cost
+            cost: input.cost,
+            terminalWidth
           }
         );
         if (panel) {
@@ -259,7 +262,8 @@ async function main() {
     const layoutOpts = {
       separator: config.separator,
       padding: config.padding,
-      maxPerLine: config.maxPerLine
+      maxPerLine: config.maxPerLine,
+      terminalWidth
     };
     const normalOutput = renderLayout(
       segments.map((s) => ({ text: s.text })),

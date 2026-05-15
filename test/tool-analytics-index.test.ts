@@ -7,6 +7,7 @@ import { spawnSync } from 'child_process';
 import { DEFAULT_CONFIG, type PulseConfig } from '../src/types/pulse-config';
 import { appendToolTimelineEvent } from '../src/tool-timeline/cache';
 import type { ToolTimelineEvent } from '../src/types/tool-timeline';
+import { visibleWidth } from '../src/formatters/layout';
 
 function withPulseHome<T>(fn: (dir: string) => T): T {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pulse-index-'));
@@ -40,15 +41,22 @@ function writeConfig(dir: string, config: PulseConfig): void {
   fs.writeFileSync(path.join(dir, 'config.json'), JSON.stringify(config, null, 2));
 }
 
-function runStatusline(dir: string): ReturnType<typeof spawnSync> {
+function runStatusline(
+  dir: string,
+  columns?: number
+): ReturnType<typeof spawnSync> & { stdout: string; stderr: string } {
   const root = path.resolve(__dirname, '..', '..');
   const input = fs.readFileSync(path.join(root, 'test', 'fixtures', 'sample-input.json'), 'utf8');
   return spawnSync('node', ['dist/src/index.js'], {
     cwd: root,
     input,
     encoding: 'utf8',
-    env: { ...process.env, PULSE_HOME_OVERRIDE: dir }
-  });
+    env: {
+      ...process.env,
+      PULSE_HOME_OVERRIDE: dir,
+      ...(columns ? { COLUMNS: String(columns) } : {})
+    }
+  }) as ReturnType<typeof spawnSync> & { stdout: string; stderr: string };
 }
 
 test('statusline renders tool analytics as an independent panel', () => {
@@ -88,5 +96,42 @@ test('statusline renders tool analytics as an independent panel', () => {
     assert.ok(result.stdout.includes('Subagents: 7 tools / 1 agents'));
     assert.ok(!result.stdout.includes('[Tool] 2 calls'));
     assert.ok(result.stdout.indexOf('TOOL ANALYTICS') > result.stdout.indexOf('Opus 4'));
+  });
+});
+
+test('statusline wraps normal modules and keeps analytics panel visible on narrow terminals', () => {
+  withPulseHome((dir) => {
+    const config = JSON.parse(JSON.stringify(DEFAULT_CONFIG)) as PulseConfig;
+    for (const mod of Object.values(config.modules) as Array<{ enabled: boolean }>) {
+      mod.enabled = false;
+    }
+    config.language = 'en';
+    config.separator = '|';
+    config.padding = 1;
+    config.maxPerLine = 5;
+    config.modules.model.enabled = true;
+    config.modules.workspace.enabled = true;
+    config.modules.context.enabled = true;
+    config.modules.cacheRatio.enabled = true;
+    config.modules.cacheRatio.icon = '[Cache]';
+    config.modules.toolTimeline.enabled = true;
+    config.modules.toolTimeline.displayMode = 'analytics-panel';
+    writeConfig(dir, config);
+
+    appendToolTimelineEvent(event({ id: '1', toolName: 'Bash', displayName: 'Bash', summary: 'npm test', durationMs: 9000 }));
+
+    const result = runStatusline(dir, 50);
+    assert.strictEqual(result.status, 0);
+    assert.ok(result.stdout.includes('TOOL ANALYTICS'));
+    assert.ok(result.stdout.includes('[Cache] 350'));
+
+    const lines = result.stdout.trimEnd().split('\n');
+    const panelStart = lines.findIndex((line) => line.includes('TOOL ANALYTICS'));
+    assert.ok(panelStart > 0);
+
+    for (const line of lines.slice(0, panelStart - 1)) {
+      assert.ok(visibleWidth(line) <= 50, line);
+    }
+    assert.ok(visibleWidth(lines[panelStart - 1]) <= 50);
   });
 });

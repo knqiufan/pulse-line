@@ -194,3 +194,33 @@ test('renderToolAnalyticsPanel returns null without cache', () => {
     assert.strictEqual(renderToolAnalyticsPanel('missing', config(), darkTheme, 'en'), null);
   });
 });
+
+test('renderToolAnalyticsPanel wraps metrics on narrow terminals', () => {
+  withTimelineCache(() => {
+    appendToolTimelineEvent(event({
+      id: '1',
+      toolName: 'Agent',
+      displayName: 'Agent',
+      summary: 'Explore',
+      actorName: 'Explore',
+      durationMs: 18000,
+      subagentMetrics: {
+        totalToolUseCount: 7,
+        totalTokens: 42100,
+        totalDurationMs: 18000
+      }
+    }));
+
+    const panel = renderToolAnalyticsPanel('s1', config({
+      displayMode: 'analytics-panel',
+      panelWidth: 59
+    }), darkTheme, 'en', {
+      terminalWidth: 40
+    });
+
+    assert.ok(panel);
+    assert.ok(panel.text.includes('\n  Main agent: 1 tools\n'));
+    assert.ok(panel.text.includes('\n  Subagents: 7 tools / 1 agents\n'));
+    assert.ok(!panel.text.includes('Subagents: 7 tools / ...'));
+  });
+});
