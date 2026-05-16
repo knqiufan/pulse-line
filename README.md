@@ -18,12 +18,12 @@
 
 ## 特性
 
-- **16 个模块** — 当前模型、Git 分支、上下文使用率、缓存、MCP 状态、账户用量、轮次、思考模式、工具分析等
+- **17 个模块** — 当前模型、Git 分支、上下文使用率、缓存、MCP 状态、账户用量、轮次、思考模式、规则统计、工具分析等
 - **5 个内置主题** — Dark、Light、Cyberpunk、Forest、Ocean
 - **国际化支持** — 中/英文切换
 - **第三方 API 监控** — 智谱 (GLM)、DeepSeek、MiniMax 账户余额和配额
 - **自适应布局** — 自定义模块顺序，按终端宽度自动换行，可配置每行模块数上限和分隔符
-- **12 个斜杠命令** — 在 Claude Code 中直接管理
+- **13 个斜杠命令** — 在 Claude Code 中直接管理
 
 ## 快速开始
 
@@ -77,6 +77,7 @@ pulse-line install
 | `/pulse-line:reload` | 重新加载配置 |
 | `/pulse-line:clear-cache` | 清除缓存 |
 | `/pulse-line:timeline` | 调试/导出已采集的工具分析数据 |
+| `/pulse-line:rules` | 查看/管理项目规则文件 |
 | `/pulse-line:debug` | 切换调试模式 |
 | `/pulse-line:uninstall` | 卸载配置 |
 
@@ -89,6 +90,8 @@ pulse-line enable thinking     # 启用模块
 pulse-line disable cost        # 禁用模块
 pulse-line clear-cache         # 清除缓存
 pulse-line timeline --last 20  # 查看最近工具调用
+pulse-line rules list          # 列出项目规则文件
+pulse-line rules pattern add "docs/**/*.md"  # 添加包含模式
 ```
 
 ## 模块列表
@@ -110,6 +113,7 @@ pulse-line timeline --last 20  # 查看最近工具调用
 | 配额 | `weeklyQuota` | ❌ 关闭 | Anthropic API 周配额 |
 | 输出风格 | `outputStyle` | ❌ 关闭 | 当前输出风格 |
 | 第三方 API | `thirdPartyApi` | ❌ 关闭 | 异步 API 供应商查询 |
+| 规则 | `rules` | ✅ 开启 | 项目规则/Skill 文件数量统计，显示规则与 Skill 明细 |
 | 工具分析 | `toolTimeline` | ❌ 关闭 | 独立工具调用统计分析面板，包含最近调用 |
 
 ## 配置
@@ -129,9 +133,16 @@ pulse-line timeline --last 20  # 查看最近工具调用
     "git": { "enabled": true, "order": 2, "icon": "[Git 分支]" },
     "workspace": { "enabled": true, "order": 3, "icon": "[工作区]" },
     "context": { "enabled": true, "order": 4, "showBar": true, "barWidth": 12 },
+    "rules": {
+      "enabled": true,
+      "order": 16,
+      "icon": "[规则]",
+      "includePatterns": [],
+      "excludePatterns": []
+    },
     "toolTimeline": {
       "enabled": false,
-      "order": 16,
+      "order": 17,
       "icon": "[工具]",
       "displayMode": "analytics-panel",
       "maxEvents": 100,

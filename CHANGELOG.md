@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Rules module: project rules/skills file count indicator with breakdown display (`rules` module, enabled by default)
+- `pulse-line rules` CLI for listing rule files and managing include/exclude patterns
+- Schema migration to v7 (adds `rules` module config)
 - Tool analytics collection via Claude Code `PostToolUse` / `PostToolUseFailure` / `SubagentStop` hooks
 - Independent `toolTimeline` analytics panel with total calls, context tokens, main/subagent counts, slowest tool, and latest 5 calls
 - Agent telemetry aggregation for subagent tool count, token count, duration, and display names
@@ -22,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Long status bars no longer hide trailing modules or the tool analytics panel on narrow terminals
 - Tool analytics panel narrows and wraps metric groups instead of relying on truncation
+- Cross-platform CI: replaced hardcoded Windows paths in tests with Unix-style paths for Linux/macOS compatibility
 
 ### Planned
 

@@ -18,12 +18,12 @@ Multi-theme support, i18n, and real-time monitoring
 
 ## Features
 
-- **16 Modules** — Model, Git branch, Context usage, Cache ratio, MCP status, Account usage, Turns, Thinking, Tool analytics, and more
+- **17 Modules** — Model, Git branch, Context usage, Cache ratio, MCP status, Account usage, Turns, Thinking, Rules, Tool analytics, and more
 - **5 Built-in Themes** — Dark, Light, Cyberpunk, Forest, Ocean
 - **i18n Support** — English and Chinese, switchable anytime
 - **3rd Party API Monitoring** — Track Zhipu (GLM), DeepSeek, MiniMax account balance and quota
 - **Responsive Layout** — Custom module order, automatic width-aware wrapping, configurable row upper bound, customizable separators
-- **12 Slash Commands** — Manage everything from within Claude Code
+- **13 Slash Commands** — Manage everything from within Claude Code
 
 ## Quick Start
 
@@ -77,6 +77,7 @@ pulse-line install
 | `/pulse-line:reload` | Reload configuration |
 | `/pulse-line:clear-cache` | Clear all cached data |
 | `/pulse-line:timeline` | Debug/export collected tool analytics data |
+| `/pulse-line:rules` | View/manage project rule files |
 | `/pulse-line:debug` | Toggle debug mode |
 | `/pulse-line:uninstall` | Remove configuration |
 
@@ -89,6 +90,8 @@ pulse-line enable thinking     # Enable module
 pulse-line disable cost        # Disable module
 pulse-line clear-cache         # Clear cache
 pulse-line timeline --last 20  # Show recent tool calls
+pulse-line rules list          # List project rule files
+pulse-line rules pattern add "docs/**/*.md"  # Add include pattern
 ```
 
 ## Modules
@@ -110,6 +113,7 @@ pulse-line timeline --last 20  # Show recent tool calls
 | Weekly Quota | `weeklyQuota` | ❌ Off | Anthropic API weekly quota |
 | Output Style | `outputStyle` | ❌ Off | Current output style |
 | Third-party API | `thirdPartyApi` | ❌ Off | Async API provider query |
+| Rules | `rules` | ✅ On | Project rules/skills file count with breakdown display |
 | Tool Analytics | `toolTimeline` | ❌ Off | Independent tool-call analytics panel with recent calls |
 
 ## Configuration
@@ -129,9 +133,16 @@ Config file: `~/.claude/pulse/config.json` — open with `pulse-line config`.
     "git": { "enabled": true, "order": 2, "icon": "[Git]" },
     "workspace": { "enabled": true, "order": 3, "icon": "[Workspace]" },
     "context": { "enabled": true, "order": 4, "showBar": true, "barWidth": 12 },
+    "rules": {
+      "enabled": true,
+      "order": 16,
+      "icon": "[Rules]",
+      "includePatterns": [],
+      "excludePatterns": []
+    },
     "toolTimeline": {
       "enabled": false,
-      "order": 16,
+      "order": 17,
       "icon": "[Tool]",
       "displayMode": "analytics-panel",
       "maxEvents": 100,
