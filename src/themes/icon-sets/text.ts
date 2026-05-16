@@ -16,6 +16,7 @@ export interface IconSet {
   outputStyle: string;
   accountUsage: string;
   toolTimeline: string;
+  rules: string;
 }
 
 export const textIconSet: IconSet = {
@@ -33,5 +34,6 @@ export const textIconSet: IconSet = {
   thinking: '[Think]',
   outputStyle: '[S]',
   accountUsage: '[A]',
-  toolTimeline: '[Tool]'
+  toolTimeline: '[Tool]',
+  rules: '[R]'
 };

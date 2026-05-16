@@ -34,4 +34,11 @@ export const enLabels: Record<string, string> = {
   toolAnalyticsRecent: 'Recent',
   toolAnalyticsNone: 'No tool calls',
   toolAnalyticsUnknownAgent: 'Unknown agent',
+  rules: 'Rules',
+  rulesFiles: 'Rules',
+  rulesSkills: 'Skill',
+  rulesTitle: 'Rules Files',
+  rulesCategory: 'Rules',
+  skillsCategory: 'Skills',
+  rulesTotal: 'Total',
 };

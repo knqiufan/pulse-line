@@ -41,7 +41,8 @@ const MODULE_KEYS = [
   'outputStyle',
   'thirdPartyApi',
   'accountUsage',
-  'toolTimeline'
+  'toolTimeline',
+  'rules'
 ] as const;
 
 /**

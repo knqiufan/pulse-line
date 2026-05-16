@@ -40,6 +40,7 @@ export interface Theme {
     outputStyle: ComponentStyle;
     accountUsage: ComponentStyle;
     toolTimeline: ComponentStyle;
+    rules: ComponentStyle;
     separator: ComponentStyle;
   };
 }

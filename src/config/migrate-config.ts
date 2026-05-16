@@ -3,7 +3,7 @@
 import type { PulseConfig } from '../types/pulse-config';
 import { DEFAULT_CONFIG } from '../types/pulse-config';
 
-const CURRENT_SCHEMA = 6;
+const CURRENT_SCHEMA = 7;
 
 export function upgradePulseSchemaIfNeeded(config: PulseConfig): boolean {
   const v = config.schemaVersion ?? 0;
@@ -28,6 +28,14 @@ export function upgradePulseSchemaIfNeeded(config: PulseConfig): boolean {
 
   if (v < 6) {
     ensureToolTimelineAnalyticsDefaults(config);
+  }
+
+  if (v < 7) {
+    if (!(config.modules as any).rules) {
+      (config.modules as any).rules = JSON.parse(
+        JSON.stringify(DEFAULT_CONFIG.modules.rules)
+      );
+    }
   }
 
   config.schemaVersion = CURRENT_SCHEMA;

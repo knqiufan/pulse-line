@@ -20,7 +20,8 @@ import {
   extractAccountUsageSync,
   refreshAccountUsage,
   extractToolTimeline,
-  renderToolAnalyticsPanel
+  renderToolAnalyticsPanel,
+  extractRules
 } from './extractors';
 import {
   renderLayout,
@@ -30,6 +31,7 @@ import { renderProgressBar } from './formatters/progress-bar';
 import { colorize } from './utils/ansi';
 import { debug } from './utils/logger';
 import { getTerminalWidth } from './utils/terminal-width';
+import { getLabel } from './i18n';
 
 interface OrderedSegment {
   order: number;
@@ -242,6 +244,33 @@ async function main() {
       if (style) {
         segments.push({ order: modules.outputStyle.order, text: colorize(theme.colors.muted, style.text) });
       }
+    }
+
+    // Rules
+    if (modules.rules.enabled) {
+      const rules = extractRules(
+        input.cwd,
+        modules.rules.includePatterns ?? [],
+        modules.rules.excludePatterns ?? []
+      );
+      const icon = modules.rules.icon ?? theme.components.rules.icon ?? '';
+      const label = rules.total.toString();
+      const line = icon.length > 0 ? `${icon} ${label}` : label;
+
+      const parts: string[] = [];
+      if (rules.rulesCount > 0) {
+        parts.push(`${getLabel(config.language, 'rulesFiles')}:${rules.rulesCount}`);
+      }
+      if (rules.skillsCount > 0) {
+        parts.push(`${getLabel(config.language, 'rulesSkills')}:${rules.skillsCount}`);
+      }
+      const suffix = parts.length > 0 ? `  ${parts.join(' ')}` : '';
+
+      segments.push({
+        order: modules.rules.order,
+        text: colorize(theme.colors.info, line) +
+          (suffix ? colorize(theme.colors.muted, suffix) : '')
+      });
     }
 
     // Third-party API usage (async)

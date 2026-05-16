@@ -14,7 +14,7 @@ description: Disable a status bar module
 
 Disable a status bar module. Changes take effect immediately on the next status bar render.
 
-Available module IDs: `model`, `context`, `git`, `accountUsage`, `cost`, `duration`, `workspace`, `turns`, `cacheRatio`, `rateLimits`, `weeklyQuota`, `mcpStatus`, `thinking`, `outputStyle`, `thirdPartyApi`, `toolTimeline`.
+Available module IDs: `model`, `context`, `git`, `accountUsage`, `cost`, `duration`, `workspace`, `turns`, `cacheRatio`, `rateLimits`, `weeklyQuota`, `mcpStatus`, `thinking`, `outputStyle`, `thirdPartyApi`, `toolTimeline`, `rules`.
 
 ## Instructions
 

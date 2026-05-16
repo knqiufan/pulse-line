@@ -42,6 +42,7 @@ export const cyberpunkTheme: Theme = {
     thinking: { fg: '#ff79c6', icon: '[Think]', showIcon: true },
     outputStyle: { fg: '#bd93f9', icon: '[S]', showIcon: true },
     toolTimeline: { fg: '#8be9fd', icon: '[Tool]', showIcon: true },
+    rules: { fg: '#8be9fd', icon: '[R]', showIcon: true },
     separator: { fg: '#6272a4', icon: '', showIcon: false, dim: true }
   }
 };

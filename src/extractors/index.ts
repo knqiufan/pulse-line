@@ -49,3 +49,6 @@ export {
   relativeToCwd
 } from './tool-timeline';
 export type { ToolAnalyticsPanel, ToolTimelineSegment } from './tool-timeline';
+
+export { extractRules } from './rules';
+export type { RulesSegment, RulesFileEntry } from './rules';
