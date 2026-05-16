@@ -25,9 +25,10 @@ import {
   upsertToolTimelineAgentMeta
 } from './tool-timeline/cache';
 import { normalizeClaudeSubagentStopHook, normalizeClaudeToolHook } from './extractors/tool-timeline';
+import { extractRules } from './extractors/rules';
 import type { ToolTimelineProvider, ToolTimelineEvent, ToolTimelineStats } from './types/tool-timeline';
 
-const CONFIG_CACHE_KEY = 'pulse-config-v6';
+const CONFIG_CACHE_KEY = 'pulse-config-v7';
 
 function saveAndInvalidate(config: import('./types/pulse-config').PulseConfig): void {
   saveConfig(config);
@@ -433,6 +434,115 @@ timeline.action((options: {
   renderTimelineTable(cache.sessionId, events, stats);
 });
 
+// ── Rules 命令组 ──────────────────────────────────
+const rulesCmd = program
+  .command('rules')
+  .description('Show project rules/config file count and list');
+
+rulesCmd.action(() => {
+  const cwd = process.cwd();
+  const config = loadConfig();
+  const mod = config.modules.rules;
+  const result = extractRules(cwd, mod.includePatterns ?? [], mod.excludePatterns ?? []);
+  const labels = getLabels(config.language);
+
+  console.log(`${labels.rulesTitle || 'Rules Files'} Summary`);
+  console.log(`  ${labels.rulesCategory || 'Rules'}: ${result.rulesCount}`);
+  console.log(`  ${labels.skillsCategory || 'Skills'}: ${result.skillsCount}`);
+  console.log(`  ${labels.rulesTotal || 'Total'}: ${result.total}`);
+});
+
+rulesCmd
+  .command('list')
+  .description('List all detected rules/config files')
+  .action(() => {
+    const cwd = process.cwd();
+    const config = loadConfig();
+    const mod = config.modules.rules;
+    const result = extractRules(cwd, mod.includePatterns ?? [], mod.excludePatterns ?? []);
+
+    if (result.total === 0) {
+      console.log('No rules/config files found in current project.');
+      return;
+    }
+
+    const labels = getLabels(config.language);
+
+    if (result.rulesCount > 0) {
+      console.log(`=== ${labels.rulesCategory || 'Rules'} (${result.rulesCount}) ===`);
+      for (const f of result.files.filter(f => f.category === 'rule')) {
+        console.log(`  ${f.relativePath}`);
+      }
+      console.log('');
+    }
+
+    if (result.skillsCount > 0) {
+      console.log(`=== ${labels.skillsCategory || 'Skills'} (${result.skillsCount}) ===`);
+      for (const f of result.files.filter(f => f.category === 'skill')) {
+        console.log(`  ${f.relativePath}`);
+      }
+      console.log('');
+    }
+
+    console.log(`${labels.rulesTotal || 'Total'}: ${result.total}`);
+  });
+
+rulesCmd
+  .command('pattern')
+  .description('Manage custom file patterns (include/exclude)')
+  .argument('<action>', 'add | remove | add-exclude | remove-exclude')
+  .argument('<glob>', 'File or directory pattern')
+  .action((action: string, patternStr: string) => {
+    const validActions = ['add', 'remove', 'add-exclude', 'remove-exclude'];
+    if (!validActions.includes(action)) {
+      console.error(`[ERROR] Action must be one of: ${validActions.join(', ')}`);
+      process.exit(1);
+    }
+
+    const config = loadConfig();
+    const mod = config.modules.rules;
+
+    if (action === 'add' || action === 'remove') {
+      const patterns = mod.includePatterns ?? [];
+      if (action === 'add') {
+        if (patterns.includes(patternStr)) {
+          console.log(`Pattern already exists: ${patternStr}`);
+          return;
+        }
+        mod.includePatterns = [...patterns, patternStr];
+        saveAndInvalidate(config);
+        console.log(`[OK] Include pattern added: ${patternStr}`);
+      } else {
+        if (!patterns.includes(patternStr)) {
+          console.log(`Pattern not found: ${patternStr}`);
+          return;
+        }
+        mod.includePatterns = patterns.filter(p => p !== patternStr);
+        saveAndInvalidate(config);
+        console.log(`[OK] Include pattern removed: ${patternStr}`);
+      }
+    } else {
+      const patterns = mod.excludePatterns ?? [];
+      if (action === 'add-exclude') {
+        if (patterns.includes(patternStr)) {
+          console.log(`Exclude pattern already exists: ${patternStr}`);
+          return;
+        }
+        mod.excludePatterns = [...patterns, patternStr];
+        saveAndInvalidate(config);
+        console.log(`[OK] Exclude pattern added: ${patternStr}`);
+      } else {
+        if (!patterns.includes(patternStr)) {
+          console.log(`Exclude pattern not found: ${patternStr}`);
+          return;
+        }
+        mod.excludePatterns = patterns.filter(p => p !== patternStr);
+        saveAndInvalidate(config);
+        console.log(`[OK] Exclude pattern removed: ${patternStr}`);
+      }
+    }
+  });
+
 program
   .command('language <lang>')
   .description('Switch display language (zh, en)')
@@ -463,7 +573,8 @@ program
       outputStyle: 'outputStyle',
       accountUsage: 'accountUsage',
       thirdPartyApi: 'thirdPartyApi',
-      toolTimeline: 'toolTimeline'
+      toolTimeline: 'toolTimeline',
+      rules: 'rules'
     };
 
     for (const [modKey, labelKey] of Object.entries(moduleKeyMap)) {

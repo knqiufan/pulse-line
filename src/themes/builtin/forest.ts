@@ -42,6 +42,7 @@ export const forestTheme: Theme = {
     thinking: { fg: '#b7e4c7', icon: '[Think]', showIcon: true },
     outputStyle: { fg: '#d8f3dc', icon: '[S]', showIcon: true },
     toolTimeline: { fg: '#95d5b2', icon: '[Tool]', showIcon: true },
+    rules: { fg: '#95d5b2', icon: '[R]', showIcon: true },
     separator: { fg: '#74c69d', icon: '', showIcon: false, dim: true }
   }
 };

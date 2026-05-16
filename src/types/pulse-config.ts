@@ -29,6 +29,7 @@ export interface PulseConfig {
     thirdPartyApi: ThirdPartyApiConfig;
     accountUsage: AccountUsageModuleConfig;
     toolTimeline: ToolTimelineModuleConfig;
+    rules: RulesModuleConfig;
   };
   advanced: {
     cacheEnabled: boolean;
@@ -84,6 +85,11 @@ export interface ToolTimelineModuleConfig extends ModuleConfig {
   summaryMaxLength?: number;
 }
 
+export interface RulesModuleConfig extends ModuleConfig {
+  includePatterns?: string[];
+  excludePatterns?: string[];
+}
+
 export const DEFAULT_CONFIG: PulseConfig = {
   theme: 'dark',
   separator: ' │ ',
@@ -92,7 +98,7 @@ export const DEFAULT_CONFIG: PulseConfig = {
   refreshInterval: 5,
   iconSet: 'text',
   language: 'en',
-  schemaVersion: 6,
+  schemaVersion: 7,
   modules: {
     model: { enabled: true, order: 1, icon: '[当前模型]' },
     git: {
@@ -121,9 +127,16 @@ export const DEFAULT_CONFIG: PulseConfig = {
     weeklyQuota: { enabled: false, order: 13, icon: '[配额]', showCountdown: true },
     outputStyle: { enabled: false, order: 14, icon: '[风格]' },
     thirdPartyApi: { enabled: false, order: 15, icon: '[API]', providers: [] },
+    rules: {
+      enabled: true,
+      order: 16,
+      icon: '[规则]',
+      includePatterns: [],
+      excludePatterns: []
+    },
     toolTimeline: {
       enabled: false,
-      order: 16,
+      order: 17,
       icon: '[工具]',
       displayMode: 'analytics-panel',
       mode: 'summary',

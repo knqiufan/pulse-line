@@ -34,4 +34,11 @@ export const zhLabels: Record<string, string> = {
   toolAnalyticsRecent: '\u6700\u8fd1',
   toolAnalyticsNone: '\u6682\u65e0\u5de5\u5177\u8c03\u7528',
   toolAnalyticsUnknownAgent: '\u672a\u77e5 agent',
+  rules: '\u89c4\u5219',
+  rulesFiles: '\u89c4\u5219',
+  rulesSkills: 'Skill',
+  rulesTitle: '\u89c4\u5219\u6587\u4ef6',
+  rulesCategory: '\u89c4\u5219\u6587\u4ef6',
+  skillsCategory: 'Skills',
+  rulesTotal: '\u603b\u8ba1',
 };

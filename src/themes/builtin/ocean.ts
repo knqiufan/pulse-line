@@ -42,6 +42,7 @@ export const oceanTheme: Theme = {
     thinking: { fg: '#818cf8', icon: '[Think]', showIcon: true },
     outputStyle: { fg: '#e0f2fe', icon: '[S]', showIcon: true },
     toolTimeline: { fg: '#67e8f9', icon: '[Tool]', showIcon: true },
+    rules: { fg: '#67e8f9', icon: '[R]', showIcon: true },
     separator: { fg: '#7dd3fc', icon: '', showIcon: false, dim: true }
   }
 };

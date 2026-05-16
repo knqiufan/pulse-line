@@ -15,6 +15,7 @@ export interface IconSet {
   outputStyle: string;
   accountUsage: string;
   toolTimeline: string;
+  rules: string;
 }
 
 export const nerdIconSet: IconSet = {
@@ -32,5 +33,6 @@ export const nerdIconSet: IconSet = {
   thinking: "󰂲",
   outputStyle: "󰀺",
   accountUsage: "󰃦",
-  toolTimeline: "[Tool]"
+  toolTimeline: "[Tool]",
+  rules: ""
 };

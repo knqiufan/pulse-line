@@ -16,7 +16,7 @@ test('upgradePulseSchemaIfNeeded coerces nerd to text once for old schema', () =
   assert.strictEqual(c.modules.toolTimeline.enabled, false);
   assert.strictEqual(c.modules.toolTimeline.displayMode, 'analytics-panel');
   assert.strictEqual(c.modules.toolTimeline.maxDisplayEvents, 5);
-  assert.strictEqual(c.schemaVersion, 6);
+  assert.strictEqual(c.schemaVersion, 7);
 });
 
 test('upgradePulseSchemaIfNeeded skips current schema', () => {
@@ -31,9 +31,9 @@ test('upgradePulseSchemaIfNeeded adds toolTimeline to v4 config', () => {
 
   assert.strictEqual(upgradePulseSchemaIfNeeded(c), true);
   assert.ok(c.modules.toolTimeline);
-  assert.strictEqual(c.modules.toolTimeline.order, 16);
+  assert.strictEqual(c.modules.toolTimeline.order, 17);
   assert.strictEqual(c.modules.toolTimeline.displayMode, 'analytics-panel');
-  assert.strictEqual(c.schemaVersion, 6);
+  assert.strictEqual(c.schemaVersion, 7);
 });
 
 test('upgradePulseSchemaIfNeeded does not coerce nerd for v4 config', () => {
@@ -46,7 +46,7 @@ test('upgradePulseSchemaIfNeeded does not coerce nerd for v4 config', () => {
   assert.strictEqual(c.iconSet, 'nerd');
   assert.ok(c.modules.toolTimeline);
   assert.strictEqual(c.modules.toolTimeline.displayMode, 'analytics-panel');
-  assert.strictEqual(c.schemaVersion, 6);
+  assert.strictEqual(c.schemaVersion, 7);
 });
 
 test('upgradePulseSchemaIfNeeded fills v5 analytics panel defaults', () => {
@@ -60,5 +60,19 @@ test('upgradePulseSchemaIfNeeded fills v5 analytics panel defaults', () => {
   assert.strictEqual(c.modules.toolTimeline.displayMode, 'analytics-panel');
   assert.strictEqual(c.modules.toolTimeline.maxDisplayEvents, 5);
   assert.strictEqual(c.modules.toolTimeline.panelWidth, 59);
-  assert.strictEqual(c.schemaVersion, 6);
+  assert.strictEqual(c.schemaVersion, 7);
+});
+
+test('upgradePulseSchemaIfNeeded adds rules module for v6 config', () => {
+  const c = JSON.parse(JSON.stringify(DEFAULT_CONFIG)) as PulseConfig;
+  delete (c.modules as any).rules;
+  c.schemaVersion = 6;
+
+  assert.strictEqual(upgradePulseSchemaIfNeeded(c), true);
+  assert.ok(c.modules.rules);
+  assert.strictEqual(c.modules.rules.enabled, true);
+  assert.strictEqual(c.modules.rules.order, 16);
+  assert.deepStrictEqual(c.modules.rules.includePatterns, []);
+  assert.deepStrictEqual(c.modules.rules.excludePatterns, []);
+  assert.strictEqual(c.schemaVersion, 7);
 });

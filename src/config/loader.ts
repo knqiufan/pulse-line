@@ -21,7 +21,7 @@ function persistIfMigrated(
 
 export function loadConfig(): PulseConfig {
   const configPath = getConfigPath();
-  const cacheKey = 'pulse-config-v6';
+  const cacheKey = 'pulse-config-v7';
 
   const cached = loadSessionCache<PulseConfig>('global', cacheKey);
   if (cached) {
