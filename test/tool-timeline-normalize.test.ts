@@ -85,14 +85,14 @@ test('normalizeClaudeSubagentStopHook extracts agent metadata', () => {
     hook_event_name: 'SubagentStop',
     agent_id: 'agent_explore_1',
     agent_type: 'Explore',
-    agent_transcript_path: 'D:\\tmp\\agent.jsonl'
+    agent_transcript_path: '/tmp/agent.jsonl'
   });
 
   assert.ok(meta);
   assert.strictEqual(meta.agentId, 'agent_explore_1');
   assert.strictEqual(meta.agentType, 'Explore');
   assert.strictEqual(meta.displayName, 'Explore');
-  assert.strictEqual(meta.transcriptPath, 'D:\\tmp\\agent.jsonl');
+  assert.strictEqual(meta.transcriptPath, '/tmp/agent.jsonl');
 });
 
 test('normalizeClaudeSubagentStopHook rejects missing agent id', () => {
@@ -145,9 +145,10 @@ test('normalizeClaudeToolHook ignores invalid duration', () => {
 });
 
 test('summarizeTool extracts file and query targets', () => {
-  const read = summarizeTool('Read', { file_path: 'D:\\code\\status-bar-cc\\src\\index.ts' }, 'D:\\code\\status-bar-cc');
+  // Use Unix-style paths that work cross-platform in path.relative
+  const read = summarizeTool('Read', { file_path: '/repo/src/index.ts' }, '/repo');
   assert.strictEqual(read.target?.kind, 'file');
-  assert.strictEqual(read.summary, 'src\\index.ts');
+  assert.strictEqual(read.summary, path.join('src', 'index.ts'));
 
   const edit = summarizeTool('Edit', { file_path: '/repo/src/index.ts' }, '/repo');
   assert.strictEqual(edit.summary, `edit ${path.join('src', 'index.ts')}`);
