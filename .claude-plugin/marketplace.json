@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "A highly customizable status bar for Claude Code — 15 modules, 5 themes, i18n (zh/en), third-party API monitoring, and more",
-    "version": "1.0.5"
+    "version": "1.0.6"
   },
   "plugins": [
     {

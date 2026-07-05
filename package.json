@@ -1,6 +1,6 @@
 {
   "name": "pulse-line",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Customizable status bar for Claude Code",
   "main": "dist/src/index.js",
   "bin": {
