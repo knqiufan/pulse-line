@@ -100,37 +100,37 @@ export const DEFAULT_CONFIG: PulseConfig = {
   language: 'en',
   schemaVersion: 7,
   modules: {
-    model: { enabled: true, order: 1, icon: '[当前模型]' },
+    model: { enabled: true, order: 1, icon: '[M]' },
     git: {
       enabled: true,
       order: 2,
       showUpstream: false,
-      icon: '[Git 分支]'
+      icon: '[G]'
     },
-    workspace: { enabled: true, order: 3, icon: '[工作区]' },
+    workspace: { enabled: true, order: 3, icon: '[W]' },
     context: {
       enabled: true,
       order: 4,
       showBar: true,
       showTokens: false,
       barWidth: 12,
-      icon: '[上下文使用率]'
+      icon: '[C]'
     },
-    cacheRatio: { enabled: true, order: 5, icon: '[缓存]' },
+    cacheRatio: { enabled: true, order: 5, icon: '[R]' },
     mcpStatus: { enabled: true, order: 6, icon: '[MCP]' },
-    accountUsage: { enabled: true, order: 7, icon: '[账户]', providers: ['zhipu', 'deepseek'] },
-    turns: { enabled: true, order: 8, icon: '[轮次]' },
-    thinking: { enabled: true, order: 9, icon: '[思考]' },
-    cost: { enabled: false, order: 10, icon: '[费用]' },
-    duration: { enabled: false, order: 11, icon: '[时长]' },
-    rateLimits: { enabled: false, order: 12, icon: '[限速]', showCountdown: true },
-    weeklyQuota: { enabled: false, order: 13, icon: '[配额]', showCountdown: true },
-    outputStyle: { enabled: false, order: 14, icon: '[风格]' },
+    accountUsage: { enabled: true, order: 7, icon: '[A]', providers: ['zhipu', 'deepseek'] },
+    turns: { enabled: true, order: 8, icon: '[N]' },
+    thinking: { enabled: true, order: 9, icon: '[Think]' },
+    cost: { enabled: false, order: 10, icon: '[$]' },
+    duration: { enabled: false, order: 11, icon: '[T]' },
+    rateLimits: { enabled: false, order: 12, icon: '[L]', showCountdown: true },
+    weeklyQuota: { enabled: false, order: 13, icon: '[Q]', showCountdown: true },
+    outputStyle: { enabled: false, order: 14, icon: '[S]' },
     thirdPartyApi: { enabled: false, order: 15, icon: '[API]', providers: [] },
     rules: {
       enabled: true,
       order: 16,
-      icon: '[规则]',
+      icon: '[Rules]',
       includePatterns: [],
       excludePatterns: []
     },

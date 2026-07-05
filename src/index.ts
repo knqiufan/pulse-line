@@ -158,7 +158,6 @@ async function main() {
         const panel = renderToolAnalyticsPanel(
           input.session_id,
           modules.toolTimeline,
-          theme,
           config.language,
           {
             contextWindow: input.context_window,

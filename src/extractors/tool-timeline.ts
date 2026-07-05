@@ -394,7 +394,6 @@ export function extractToolTimeline(
 export function renderToolAnalyticsPanel(
   sessionId: string,
   config: ToolTimelineModuleConfig,
-  theme: Theme,
   language: Language,
   snapshot?: {
     contextWindow?: ContextWindow;
@@ -455,7 +454,6 @@ export function renderToolAnalyticsPanel(
   }
 
   lines.push(divider, border);
-  void theme;
   return { text: lines.join('\n') };
 }
 

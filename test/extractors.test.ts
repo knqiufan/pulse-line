@@ -201,13 +201,14 @@ test('extractCost should format cost correctly', () => {
   assert.strictEqual(result.text, '$0.0420');
 });
 
-test('extractCost should return null for zero cost', () => {
+test('extractCost should render zero cost as $0.0000', () => {
   const input = fullInput({
     cost: { total_cost_usd: 0, input_cost_usd: 0, output_cost_usd: 0 }
   });
 
   const result = extractCost(input);
-  assert.strictEqual(result, null);
+  assert.ok(result);
+  assert.strictEqual(result.text, '$0.0000');
 });
 
 test('extractWorkspace should use project_name if available', () => {

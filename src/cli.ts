@@ -174,6 +174,9 @@ program
         console.log('   Run the following in Claude Code:');
         console.log('   /plugin marketplace add knqiufan/pulse-line');
         console.log('   /plugin install pulse-line');
+        console.log('\n⚠  Tool analytics (toolTimeline module) requires Claude Code');
+        console.log('   hooks to be registered. Install pulse-line as a plugin');
+        console.log('   (/plugin install pulse-line) for those features to work.');
       }
     } catch (err) {
       console.error('[ERROR] Installation failed:', err instanceof Error ? err.message : err);

@@ -17,13 +17,13 @@ function inferTierEnvKey(id: string | undefined, displayName: string | undefined
   const lowId = (id || '').toLowerCase();
   const lowDisp = (displayName || '').toLowerCase();
 
-  if (lowId.includes('opus') || /\bopus\b/.test(lowDisp)) {
+  if (/\bopus\b/.test(lowId) || /\bopus\b/.test(lowDisp)) {
     return 'ANTHROPIC_DEFAULT_OPUS_MODEL';
   }
-  if (lowId.includes('sonnet') || /\bsonnet\b/.test(lowDisp)) {
+  if (/\bsonnet\b/.test(lowId) || /\bsonnet\b/.test(lowDisp)) {
     return 'ANTHROPIC_DEFAULT_SONNET_MODEL';
   }
-  if (lowId.includes('haiku') || /\bhaiku\b/.test(lowDisp)) {
+  if (/\bhaiku\b/.test(lowId) || /\bhaiku\b/.test(lowDisp)) {
     return 'ANTHROPIC_DEFAULT_HAIKU_MODEL';
   }
   return null;

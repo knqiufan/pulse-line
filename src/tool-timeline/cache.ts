@@ -328,6 +328,7 @@ export function appendToolTimelineEvent(
   const provider = event.provider;
   const cachePath = getToolTimelineCachePath(event.sessionId, provider);
   const existing = readToolTimelineCache(event.sessionId, provider);
+  const agents = existing?.agents;
 
   let events = existing?.events || [];
   if (event.toolUseId) {
@@ -341,19 +342,27 @@ export function appendToolTimelineEvent(
     events = events.slice(events.length - maxEvents);
   }
 
-  const cache: ToolTimelineCache = {
+  const updatedAt = new Date().toISOString();
+  // Persist minimal cache — stats are recomputed on read to keep writes cheap.
+  writeJsonAtomic(cachePath, {
     version: 2,
     provider,
     sessionId: event.sessionId,
-    updatedAt: new Date().toISOString(),
+    updatedAt,
+    events,
+    agents
+  });
+
+  return {
+    version: 2,
+    provider,
+    sessionId: event.sessionId,
+    updatedAt,
     events,
     stats: computeToolTimelineStats(events),
-    agents: existing?.agents,
-    analyticsStats: computeToolAnalyticsStats(events, existing?.agents)
+    agents,
+    analyticsStats: computeToolAnalyticsStats(events, agents)
   };
-
-  writeJsonAtomic(cachePath, cache);
-  return cache;
 }
 
 export function upsertToolTimelineAgentMeta(
@@ -368,20 +377,27 @@ export function upsertToolTimelineAgentMeta(
     ...(existing?.agents || {}),
     [agent.agentId]: agent
   };
+  const updatedAt = new Date().toISOString();
 
-  const cache: ToolTimelineCache = {
+  writeJsonAtomic(cachePath, {
     version: 2,
     provider,
     sessionId,
-    updatedAt: new Date().toISOString(),
+    updatedAt,
+    events,
+    agents
+  });
+
+  return {
+    version: 2,
+    provider,
+    sessionId,
+    updatedAt,
     events,
     stats: computeToolTimelineStats(events),
     agents,
     analyticsStats: computeToolAnalyticsStats(events, agents)
   };
-
-  writeJsonAtomic(cachePath, cache);
-  return cache;
 }
 
 export function clearToolTimelineCache(

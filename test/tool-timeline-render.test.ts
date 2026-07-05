@@ -131,7 +131,7 @@ test('renderToolAnalyticsPanel renders English analytics panel', () => {
       displayMode: 'analytics-panel',
       maxDisplayEvents: 5,
       panelWidth: 59
-    }), darkTheme, 'en', {
+    }), 'en', {
       contextWindow: {
         total_input_tokens: 100,
         total_output_tokens: 50,
@@ -176,7 +176,7 @@ test('renderToolAnalyticsPanel renders Chinese labels and caps recent calls at f
       displayMode: 'analytics-panel',
       maxDisplayEvents: 10,
       panelWidth: 59
-    }), darkTheme, 'zh');
+    }), 'zh');
 
     assert.ok(panel);
     assert.ok(panel.text.includes('工具分析'));
@@ -191,7 +191,7 @@ test('renderToolAnalyticsPanel renders Chinese labels and caps recent calls at f
 
 test('renderToolAnalyticsPanel returns null without cache', () => {
   withTimelineCache(() => {
-    assert.strictEqual(renderToolAnalyticsPanel('missing', config(), darkTheme, 'en'), null);
+    assert.strictEqual(renderToolAnalyticsPanel('missing', config(), 'en'), null);
   });
 });
 
@@ -214,7 +214,7 @@ test('renderToolAnalyticsPanel wraps metrics on narrow terminals', () => {
     const panel = renderToolAnalyticsPanel('s1', config({
       displayMode: 'analytics-panel',
       panelWidth: 59
-    }), darkTheme, 'en', {
+    }), 'en', {
       terminalWidth: 40
     });
 

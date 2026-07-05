@@ -8,7 +8,7 @@ export interface CostSegment {
 
 export function extractCost(input: PulseInput): CostSegment | null {
   const cost = input.cost?.total_cost_usd;
-  if (cost === undefined || cost === null || cost === 0) return null;
+  if (cost === undefined || cost === null) return null;
 
   return {
     text: `$${cost.toFixed(4)}`

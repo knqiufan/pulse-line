@@ -30,7 +30,7 @@ export function loadConfig(): PulseConfig {
     persistIfMigrated(cached, configPath, migrated);
     saveSessionCache('global', cacheKey, cached, 60 * 1000);
     debug('Config loaded from cache');
-    return cached;
+    return cloneConfig(cached);
   }
 
   let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG)) as PulseConfig;
@@ -71,7 +71,11 @@ export function loadConfig(): PulseConfig {
   // Cache config for 1 minute
   saveSessionCache('global', cacheKey, config, 60 * 1000);
 
-  return config;
+  return cloneConfig(config);
+}
+
+function cloneConfig(config: PulseConfig): PulseConfig {
+  return JSON.parse(JSON.stringify(config)) as PulseConfig;
 }
 
 export function saveConfig(config: PulseConfig): void {

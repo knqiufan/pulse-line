@@ -15,9 +15,6 @@ export function upgradePulseSchemaIfNeeded(config: PulseConfig): boolean {
 
   if (v < 4) {
     (config as any).language = (config as any).language ?? 'zh';
-    if (config.modules.model) {
-      config.modules.model.icon = '[当前模型]';
-    }
   }
 
   if (v < 5 && !(config.modules as any).toolTimeline) {

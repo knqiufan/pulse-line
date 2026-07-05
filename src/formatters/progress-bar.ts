@@ -8,7 +8,6 @@ export function renderProgressBar(percentage: number, width: number = 12): strin
 
 export function getProgressColor(percentage: number): string {
   const pct = Math.min(100, Math.max(0, percentage));
-  if (pct < 30) return '#9ece6a';
   if (pct < 50) return '#9ece6a';
   if (pct < 70) return '#e0af68';
   if (pct < 90) return '#ff9e64';

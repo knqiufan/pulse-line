@@ -1,13 +1,14 @@
 // src/extractors/output-style.ts
 
 import type { Theme } from '../types/theme';
+import type { PulseInput } from '../types/pulse-input';
 
 export interface OutputStyleSegment {
   text: string;
 }
 
 export function extractOutputStyle(
-  input: { output_style: { name: string } },
+  input: Pick<PulseInput, 'output_style'>,
   theme: Theme
 ): OutputStyleSegment | null {
   const name = input.output_style?.name;
