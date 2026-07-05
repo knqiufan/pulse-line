@@ -64,7 +64,7 @@ function walkDir(
       if (entry.isDirectory()) {
         if (shouldExcludeDir(entry.name, excludePatterns)) continue;
         results.push(...walkDir(path.join(dir, entry.name), cwd, excludePatterns, category, depth + 1));
-      } else if (entry.isFile()) {
+      } else if (entry.isFile() && isRuleFile(entry.name)) {
         results.push({
           relativePath: path.relative(cwd, path.join(dir, entry.name)),
           category
@@ -75,6 +75,11 @@ function walkDir(
     // Directory doesn't exist or permission denied — skip
   }
   return results;
+}
+
+/** Only markdown files count as rules/skills — excludes settings.json, cache files, etc. */
+function isRuleFile(name: string): boolean {
+  return name.toLowerCase().endsWith('.md');
 }
 
 function findClaudeMdFiles(

@@ -10,7 +10,11 @@ export interface McpSegment {
   text: string;
 }
 
-export function extractMcpStatus(theme: Theme, iconOverride?: string): McpSegment | null {
+export function extractMcpStatus(
+  theme: Theme,
+  iconOverride?: string,
+  cwd?: string
+): McpSegment | null {
   try {
     let count = 0;
 
@@ -29,7 +33,8 @@ export function extractMcpStatus(theme: Theme, iconOverride?: string): McpSegmen
     }
 
     // <cwd>/.mcp.json (project-level MCP)
-    const projectPath = path.join(process.cwd(), '.mcp.json');
+    const projectBase = cwd || process.cwd();
+    const projectPath = path.join(projectBase, '.mcp.json');
     if (fs.existsSync(projectPath)) {
       const project = JSON.parse(fs.readFileSync(projectPath, 'utf8'));
       count += Object.keys(project.mcpServers || {}).length;

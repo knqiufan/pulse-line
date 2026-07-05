@@ -225,7 +225,7 @@ async function main() {
     // MCP status
     if (modules.mcpStatus.enabled) {
       const mcpIcon = modules.mcpStatus.icon;
-      const mcp = extractMcpStatus(theme, mcpIcon);
+      const mcp = extractMcpStatus(theme, mcpIcon, input.cwd);
       if (mcp) {
         segments.push({ order: modules.mcpStatus.order, text: colorize(theme.colors.muted, mcp.text) });
       }

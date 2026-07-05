@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "A highly customizable status bar for Claude Code — 15 modules, 5 themes, i18n (zh/en), third-party API monitoring, and more",
-    "version": "1.0.0"
+    "version": "1.0.5"
   },
   "plugins": [
     {
@@ -14,7 +14,15 @@
       "source": "./",
       "description": "Real-time status bar showing model, context usage, git branch, cache, MCP status, account usage, turns, thinking, and more. Supports 5 themes, i18n (Chinese/English), and third-party API monitoring for Zhipu, DeepSeek, and MiniMax.",
       "category": "monitoring",
-      "tags": ["statusline", "status-bar", "monitoring", "pulse-line", "claude-code", "i18n", "themes"]
+      "tags": [
+        "statusline",
+        "status-bar",
+        "monitoring",
+        "pulse-line",
+        "claude-code",
+        "i18n",
+        "themes"
+      ]
     }
   ]
 }

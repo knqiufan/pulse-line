@@ -71,17 +71,18 @@ test('extractRules scans .claude/ directory', () => {
   try {
     const claudeDir = path.join(dir, '.claude');
     fs.mkdirSync(claudeDir, { recursive: true });
+    // settings.json is a config file, NOT a rule — should be excluded
     fs.writeFileSync(path.join(claudeDir, 'settings.json'), '{}');
     const agentsDir = path.join(claudeDir, 'agents');
     fs.mkdirSync(agentsDir, { recursive: true });
     fs.writeFileSync(path.join(agentsDir, 'reviewer.md'), '# Agent');
 
     const result = extractRules(dir);
-    assert.strictEqual(result.rulesCount, 2);
-    assert.strictEqual(result.total, 2);
+    assert.strictEqual(result.rulesCount, 1);
+    assert.strictEqual(result.total, 1);
 
     const paths = result.files.map(f => f.relativePath);
-    assert.ok(paths.includes(path.join('.claude', 'settings.json')));
+    assert.ok(!paths.includes(path.join('.claude', 'settings.json')));
     assert.ok(paths.includes(path.join('.claude', 'agents', 'reviewer.md')));
   } finally {
     cleanup(dir);
@@ -112,10 +113,13 @@ test('extractRules combines all categories', () => {
     // CLAUDE.md at root
     fs.writeFileSync(path.join(dir, 'CLAUDE.md'), '# Root');
 
-    // .claude/ files
+    // .claude/ files (settings.json doesn't count, agents/reviewer.md does)
     const claudeDir = path.join(dir, '.claude');
     fs.mkdirSync(claudeDir, { recursive: true });
     fs.writeFileSync(path.join(claudeDir, 'settings.json'), '{}');
+    const agentsDir = path.join(claudeDir, 'agents');
+    fs.mkdirSync(agentsDir, { recursive: true });
+    fs.writeFileSync(path.join(agentsDir, 'reviewer.md'), '# Agent');
 
     // skills/ files
     const skillsDir = path.join(dir, 'skills', 'test');
@@ -123,7 +127,7 @@ test('extractRules combines all categories', () => {
     fs.writeFileSync(path.join(skillsDir, 'SKILL.md'), '# Test');
 
     const result = extractRules(dir);
-    assert.strictEqual(result.rulesCount, 2);  // CLAUDE.md + settings.json
+    assert.strictEqual(result.rulesCount, 2);  // CLAUDE.md + .claude/agents/reviewer.md
     assert.strictEqual(result.skillsCount, 1);
     assert.strictEqual(result.total, 3);
   } finally {

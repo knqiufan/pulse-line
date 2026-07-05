@@ -1,6 +1,6 @@
 {
   "name": "pulse-line",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "A highly customizable status bar plugin for Claude Code with multi-theme support, i18n, and real-time monitoring",
   "author": {
     "name": "knqiufan",
@@ -9,7 +9,14 @@
   "homepage": "https://github.com/knqiufan/pulse-line",
   "repository": "https://github.com/knqiufan/pulse-line",
   "license": "MIT",
-  "keywords": ["claude-code", "statusline", "status-bar", "monitoring", "productivity", "pulse-line"],
+  "keywords": [
+    "claude-code",
+    "statusline",
+    "status-bar",
+    "monitoring",
+    "productivity",
+    "pulse-line"
+  ],
   "commands": [
     "./commands/install.md",
     "./commands/theme.md",

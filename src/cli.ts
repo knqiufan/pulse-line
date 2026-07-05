@@ -115,10 +115,20 @@ function renderTimelineTable(sessionId: string, events: ToolTimelineEvent[], sta
 
 const program = new Command();
 
+function readPackageVersion(): string {
+  try {
+    const pkgPath = path.resolve(__dirname, '..', '..', 'package.json');
+    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8')) as { version?: string };
+    return pkg.version || '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
+
 program
   .name('pulse-line')
   .description('Customizable status bar for Claude Code')
-  .version('1.0.0');
+  .version(readPackageVersion());
 
 program
   .command('install')
