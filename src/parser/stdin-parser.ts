@@ -41,23 +41,25 @@ export function parseStdinSync(): PulseInput {
 }
 
 function readFileSync(fd: number, encoding: string): string {
+  const fs = require('fs');
   const chunks: Buffer[] = [];
   const buffer = Buffer.alloc(8192);
-  let bytesRead: number;
 
-  while ((bytesRead = read(fd, buffer, 0, buffer.length, null)) > 0) {
+  while (true) {
+    let bytesRead: number;
+    try {
+      bytesRead = fs.readSync(fd, buffer, 0, buffer.length, null);
+    } catch (err) {
+      // EOF on Windows pipes surfaces as EEOF or a benign error after data was read;
+      // surface real I/O errors only when nothing has been read yet.
+      const code = (err as NodeJS.ErrnoException)?.code;
+      if (chunks.length > 0 || code === 'EOF' || code === 'EIO') break;
+      throw err;
+    }
+    if (bytesRead === 0) break;
     chunks.push(buffer.subarray(0, bytesRead));
   }
 
   const combined = Buffer.concat(chunks);
   return combined.toString(encoding as BufferEncoding);
-}
-
-function read(fd: number, buffer: Buffer, offset: number, length: number, position: number | null): number {
-  const fs = require('fs');
-  try {
-    return fs.readSync(fd, buffer, offset, length, position);
-  } catch {
-    return 0;
-  }
 }

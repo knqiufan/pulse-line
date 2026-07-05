@@ -65,11 +65,36 @@ export function loadSessionCache<T>(sessionId: string, key: string): T | null {
   }
 }
 
+function writeJsonAtomic(filePath: string, value: unknown): void {
+  const dir = path.dirname(filePath);
+  const tmp = `${filePath}.tmp.${process.pid}`;
+
+  fs.mkdirSync(dir, { recursive: true });
+  try {
+    fs.writeFileSync(tmp, JSON.stringify(value));
+    try {
+      fs.renameSync(tmp, filePath);
+    } catch {
+      try {
+        fs.rmSync(filePath, { force: true });
+      } catch {
+        // Ignore cleanup failure and retry rename below.
+      }
+      fs.renameSync(tmp, filePath);
+    }
+  } catch (err) {
+    try {
+      fs.rmSync(tmp, { force: true });
+    } catch {
+      // Ignore temporary file cleanup failure.
+    }
+    throw err;
+  }
+}
+
 export function saveSessionCache<T>(sessionId: string, key: string, value: T, ttl: number): void {
   try {
     const cachePath = getSessionCachePath(sessionId);
-    const cacheDir = path.dirname(cachePath);
-    fs.mkdirSync(cacheDir, { recursive: true });
 
     let cache: Record<string, any> = {};
     if (fs.existsSync(cachePath)) {
@@ -77,7 +102,7 @@ export function saveSessionCache<T>(sessionId: string, key: string, value: T, tt
     }
 
     cache[key] = { data: value, timestamp: Date.now() + ttl };
-    fs.writeFileSync(cachePath, JSON.stringify(cache));
+    writeJsonAtomic(cachePath, cache);
     debug(`Cache saved: ${sessionId}/${key}`);
   } catch (err) {
     debug('Cache write failed:', err);
@@ -92,7 +117,7 @@ export function removeSessionCacheKey(sessionId: string, key: string): void {
     const cache = JSON.parse(raw);
     if (!(key in cache)) return;
     delete cache[key];
-    fs.writeFileSync(cachePath, JSON.stringify(cache));
+    writeJsonAtomic(cachePath, cache);
     debug(`Cache key removed: ${sessionId}/${key}`);
   } catch { /* ignore */ }
 }

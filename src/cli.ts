@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -228,10 +228,16 @@ program
   .description('Open config file in editor')
   .action(() => {
     const configPath = getConfigPath();
-    const editor = process.env.EDITOR || process.env.VISUAL || 'vi';
+    const editor = (process.env.EDITOR || process.env.VISUAL || 'vi').trim();
+    const [bin, ...args] = editor.split(/\s+/);
+    if (!bin) {
+      console.error('[ERROR] Editor command is empty');
+      console.error(`Config file: ${configPath}`);
+      process.exit(1);
+    }
 
     try {
-      execSync(`${editor} "${configPath}"`, { stdio: 'inherit' });
+      execFileSync(bin, [...args, configPath], { stdio: 'inherit' });
       removeSessionCacheKey('global', CONFIG_CACHE_KEY);
       console.log('[OK] Config saved');
     } catch (err) {
