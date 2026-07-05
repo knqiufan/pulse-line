@@ -3,8 +3,8 @@
 import * as https from 'https';
 import { debug } from '../utils/logger';
 import { loadMergedClaudeEnv } from '../utils/claude-settings-env';
-import { resolveProviderCredentials } from '../utils/provider-credentials';
-import { loadSessionCache, saveSessionCache } from '../utils/cache';
+import { resolveProviderCredentials, type ResolvedProviderCred } from '../utils/provider-credentials';
+import { loadSessionCache, saveSessionCache, removeSessionCacheKey } from '../utils/cache';
 
 interface ApiUsageResult {
   provider: string;
@@ -15,7 +15,13 @@ interface ApiUsageResult {
 
 export type { ApiUsageResult };
 
-const THIRD_PARTY_FALLBACK_ICON = '[L]';
+export const THIRD_PARTY_FALLBACK_ICON = '[L]';
+const CACHE_TTL = 300_000; // 5 minutes
+const SUPPORTED_PROVIDERS: ReadonlySet<string> = new Set(['zhipu', 'deepseek']);
+
+function cacheKey(provider: string): string {
+  return `api-${provider}`;
+}
 
 function buildPctBar(pct: number): string {
   const barWidth = 12;
@@ -23,69 +29,130 @@ function buildPctBar(pct: number): string {
   return '█'.repeat(filled) + '░'.repeat(barWidth - filled);
 }
 
+/**
+ * Synchronous render: only show cached data for supported providers that currently
+ * have credentials. Stale or uncredentialled providers are never displayed.
+ */
+export function extractThirdPartyApiSync(
+  providers: string[],
+  theme: { colors?: { accent?: string; info?: string } },
+  cwd: string
+): ApiUsageResult[] {
+  if (providers.length === 0) return [];
+
+  const merged = loadMergedClaudeEnv(cwd);
+  const seen = new Set<string>();
+  const results: ApiUsageResult[] = [];
+
+  for (const provider of providers) {
+    if (seen.has(provider)) continue;
+    seen.add(provider);
+    if (!SUPPORTED_PROVIDERS.has(provider)) continue;
+
+    const cred = resolveProviderCredentials(provider, merged);
+    if (!cred) continue;
+
+    const cached = loadSessionCache<ApiUsageResult>('global', cacheKey(provider));
+    if (cached) {
+      results.push(cached);
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Async refresh:
+ * 1. Drop stale cache entries for unsupported providers or providers lacking credentials.
+ * 2. Fetch fresh data for active providers whose cache is missing/expired.
+ */
+export async function refreshThirdPartyApi(
+  providers: string[],
+  theme: { colors?: { accent?: string; info?: string } },
+  timeout: number,
+  cwd: string,
+  icon: string = THIRD_PARTY_FALLBACK_ICON
+): Promise<void> {
+  if (providers.length === 0) return;
+
+  const merged = loadMergedClaudeEnv(cwd);
+  const seen = new Set<string>();
+  const promises: Promise<void>[] = [];
+
+  for (const provider of providers) {
+    if (seen.has(provider)) continue;
+    seen.add(provider);
+
+    if (!SUPPORTED_PROVIDERS.has(provider)) {
+      removeSessionCacheKey('global', cacheKey(provider));
+      continue;
+    }
+
+    const cred = resolveProviderCredentials(provider, merged);
+    if (!cred) {
+      removeSessionCacheKey('global', cacheKey(provider));
+      debug(`Removed stale cache for inactive provider: ${provider}`);
+      continue;
+    }
+
+    const cached = loadSessionCache<ApiUsageResult>('global', cacheKey(provider));
+    if (cached) {
+      debug(`Cache fresh for ${provider}, skipping API call`);
+      continue;
+    }
+
+    promises.push(
+      runProviderQuery(provider, cred, theme, timeout, icon)
+        .then((result) => {
+          if (result) {
+            saveSessionCache('global', cacheKey(provider), result, CACHE_TTL);
+            debug(`Refreshed ${provider}: ${result.text}`);
+          } else {
+            debug(`No result for ${provider}`);
+          }
+        })
+        .catch((err: unknown) => {
+          debug(`Refresh failed for ${provider}:`, err);
+        })
+    );
+  }
+
+  await Promise.all(promises);
+}
+
+/**
+ * Convenience wrapper: refresh then read cache. Production code should prefer the
+ * split refresh + sync pair so the status line renders immediately from cache.
+ */
 export async function extractThirdPartyApi(
   providers: string[],
   theme: { colors?: { accent?: string; info?: string } },
   timeout: number,
   cwd: string
 ): Promise<ApiUsageResult[]> {
-  if (providers.length === 0) return [];
-
-  const merged = loadMergedClaudeEnv(cwd);
-  const promises = providers.map((provider) =>
-    queryProvider(provider, theme, timeout, merged).catch((err) => {
-      debug(`API query failed for ${provider}:`, err);
-      return null;
-    })
-  );
-
-  const settled = await Promise.all(promises);
-  const results: ApiUsageResult[] = [];
-  for (const result of settled) {
-    if (result) results.push(result);
-  }
-  return results;
+  await refreshThirdPartyApi(providers, theme, timeout, cwd);
+  return extractThirdPartyApiSync(providers, theme, cwd);
 }
 
-async function queryProvider(
+async function runProviderQuery(
   provider: string,
+  cred: ResolvedProviderCred,
   theme: { colors?: { accent?: string; info?: string } },
   timeout: number,
-  mergedEnv: Record<string, string>
+  icon: string
 ): Promise<ApiUsageResult | null> {
-  const cred = resolveProviderCredentials(provider, mergedEnv);
-  if (!cred) return null;
-
-  const cacheKey = `api-${provider}`;
-  const cached = loadSessionCache<ApiUsageResult>('global', cacheKey);
-  if (cached) {
-    return cached;
-  }
-
-  let result: ApiUsageResult | null = null;
-
   switch (provider) {
-    case 'zhipu':
-      result = await queryZhipu(cred, theme, timeout);
-      break;
-    case 'deepseek':
-      result = await queryDeepSeek(cred, theme, timeout);
-      break;
-    default:
-      result = null;
+    case 'zhipu':    return queryZhipu(cred, theme, timeout, icon);
+    case 'deepseek': return queryDeepSeek(cred, theme, timeout, icon);
+    default:         return null;
   }
-
-  if (result) {
-    saveSessionCache('global', cacheKey, result, 300000);
-  }
-
-  return result;
 }
 
 async function queryZhipu(
-  cred: { apiKey: string; baseUrl: string },
+  cred: ResolvedProviderCred,
   theme: { colors?: { accent?: string } },
-  timeout: number
+  timeout: number,
+  icon: string
 ): Promise<ApiUsageResult | null> {
   return new Promise((resolve) => {
     const url = new URL('/api/monitor/usage/quota/limit', cred.baseUrl);
@@ -124,7 +191,7 @@ async function queryZhipu(
               provider: 'zhipu',
               text: `GLM: ${bar} ${pct}%`,
               fg: theme.colors?.accent ?? '#bb9af7',
-              icon: THIRD_PARTY_FALLBACK_ICON
+              icon
             });
           } else {
             resolve(null);
@@ -146,9 +213,10 @@ async function queryZhipu(
 }
 
 async function queryDeepSeek(
-  cred: { apiKey: string; baseUrl: string },
+  cred: ResolvedProviderCred,
   theme: { colors?: { info?: string } },
-  timeout: number
+  timeout: number,
+  icon: string
 ): Promise<ApiUsageResult | null> {
   return new Promise((resolve) => {
     const url = new URL('/user/balance', cred.baseUrl);
@@ -179,7 +247,7 @@ async function queryDeepSeek(
               provider: 'deepseek',
               text: `DeepSeek: CN¥${total.toFixed(2)}`,
               fg: theme.colors?.info ?? '#7dcfff',
-              icon: THIRD_PARTY_FALLBACK_ICON
+              icon
             });
           } else {
             resolve(null);

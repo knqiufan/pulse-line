@@ -24,5 +24,6 @@
     "./commands/debug.md",
     "./commands/uninstall.md"
   ],
-  "skills": "./skills/"
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json"
 }

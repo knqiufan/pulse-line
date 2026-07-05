@@ -16,7 +16,9 @@ import {
   extractTurns,
   extractThinking,
   extractOutputStyle,
-  extractThirdPartyApi,
+  extractThirdPartyApiSync,
+  refreshThirdPartyApi,
+  THIRD_PARTY_FALLBACK_ICON,
   extractAccountUsageSync,
   refreshAccountUsage,
   extractToolTimeline,
@@ -273,15 +275,31 @@ async function main() {
       });
     }
 
-    // Third-party API usage (async)
+    // Third-party API usage (refresh cache, then sync render)
     if (modules.thirdPartyApi.enabled) {
       const providers = modules.thirdPartyApi.providers || [];
       if (providers.length > 0) {
-        extractThirdPartyApi(providers, theme, HTTP_TIMEOUT_MS, input.cwd)
-          .then((results) => {
-            debug(`Third-party API query complete: ${results.length} providers`);
-          })
-          .catch((err) => debug('Third-party API query error:', err));
+        const tpIcon = modules.thirdPartyApi.icon ?? '';
+
+        await refreshThirdPartyApi(
+          providers,
+          theme,
+          HTTP_TIMEOUT_MS,
+          input.cwd,
+          tpIcon || THIRD_PARTY_FALLBACK_ICON
+        );
+
+        const cachedResults = extractThirdPartyApiSync(providers, theme, input.cwd);
+        for (const result of cachedResults) {
+          const icon = tpIcon || result.icon;
+          segments.push({
+            order: modules.thirdPartyApi.order,
+            text: colorize(
+              result.fg,
+              icon.length > 0 ? `${icon} ${result.text}` : result.text
+            )
+          });
+        }
       }
     }
 
