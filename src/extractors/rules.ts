@@ -17,8 +17,9 @@ export interface RulesSegment {
 }
 
 const DEFAULT_EXCLUDES = new Set([
-  'node_modules', '.git', 'dist', '.worktrees',
-  '.next', '.nuxt', 'coverage', '__pycache__', '.turbo'
+  'node_modules', '.git', 'dist', '.worktrees', 'build', 'out', 'target',
+  '.next', '.nuxt', 'coverage', '__pycache__', '.turbo', '.cache',
+  '.idea', '.vscode', '.venv', 'venv', 'vendor'
 ]);
 
 /** Directories excluded from CLAUDE.md search but NOT from walkDir */
@@ -26,7 +27,7 @@ const CLAUDE_MD_EXCLUDES = new Set([
   ...DEFAULT_EXCLUDES, '.claude', 'skills'
 ]);
 
-const MAX_DEPTH = 10;
+const MAX_DEPTH = 5;
 const CACHE_TTL = 60_000;
 
 function buildCacheKey(cwd: string, includes: string[], excludes: string[]): string {

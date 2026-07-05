@@ -9,9 +9,18 @@ export type MergedEnvMap = Record<string, string>;
 
 let _testEnvOverride: MergedEnvMap | null = null;
 
+const ENV_CACHE_TTL_MS = 1000;
+interface EnvCacheEntry {
+  cwd: string;
+  value: MergedEnvMap;
+  expiresAt: number;
+}
+let _envCache: EnvCacheEntry | null = null;
+
 /** @internal Test hook: force loadMergedClaudeEnv to return a fixed map. */
 export function __setTestEnvOverride(map: MergedEnvMap | null) {
   _testEnvOverride = map;
+  _envCache = null;
 }
 
 function readSettingsEnvFile(filePath: string): MergedEnvMap {
@@ -39,9 +48,18 @@ function mergeEnvLayers(low: MergedEnvMap, high: MergedEnvMap): MergedEnvMap {
  * Merges top-level `env` from Claude Code settings layers (weak → strong).
  * Order: ~/.claude/settings.json → ~/.claude/settings.local.json →
  *        {cwd}/.claude/settings.json → {cwd}/.claude/settings.local.json
+ *
+ * Results are cached for ENV_CACHE_TTL_MS per cwd to avoid re-reading the same
+ * 4 files multiple times within a single statusline render.
  */
 export function loadMergedClaudeEnv(cwd: string): MergedEnvMap {
   if (_testEnvOverride !== null) return _testEnvOverride;
+
+  const now = Date.now();
+  if (_envCache && _envCache.cwd === cwd && _envCache.expiresAt > now) {
+    return _envCache.value;
+  }
+
   const home = os.homedir();
   const paths = [
     path.join(home, '.claude', 'settings.json'),
@@ -54,6 +72,8 @@ export function loadMergedClaudeEnv(cwd: string): MergedEnvMap {
   for (const p of paths) {
     merged = mergeEnvLayers(merged, readSettingsEnvFile(p));
   }
+
+  _envCache = { cwd, value: merged, expiresAt: now + ENV_CACHE_TTL_MS };
   return merged;
 }
 

@@ -1,6 +1,7 @@
 import { execFileSync } from 'child_process';
 
 const WIDTH_PROBE_TIMEOUT_MS = 80;
+const WIDTH_CACHE_TTL_MS = 5000;
 
 export interface TerminalWidthProbeOptions {
   env?: NodeJS.ProcessEnv;
@@ -8,7 +9,15 @@ export interface TerminalWidthProbeOptions {
   stdoutColumns?: number;
   stderrColumns?: number;
   execFileSyncImpl?: typeof execFileSync;
+  /** Bypass the in-process cache (used by tests). */
+  noCache?: boolean;
 }
+
+interface CachedWidth {
+  value: number | undefined;
+  expiresAt: number;
+}
+let _cachedWidth: CachedWidth | null = null;
 
 export function parseModeConColumns(output: string): number | undefined {
   const match = output.match(/Columns:\s*(\d+)/i);
@@ -42,11 +51,20 @@ export function getTerminalWidth(options: TerminalWidthProbeOptions = {}): numbe
   const fromStderr = normalizeWidth(options.stderrColumns ?? process.stderr.columns);
   if (fromStderr !== undefined) return fromStderr;
 
+  // Only the expensive subprocess probe benefits from caching; cheap env/stdout
+  // reads are evaluated every call so tests and runtime overrides stay live.
+  if (!options.noCache && _cachedWidth && _cachedWidth.expiresAt > Date.now()) {
+    return _cachedWidth.value;
+  }
+
   const platform = options.platform ?? process.platform;
   const execImpl = options.execFileSyncImpl ?? execFileSync;
-  return platform === 'win32'
+  const value = platform === 'win32'
     ? getWindowsConsoleWidth(execImpl)
     : getUnixTerminalWidth(execImpl);
+
+  _cachedWidth = { value, expiresAt: Date.now() + WIDTH_CACHE_TTL_MS };
+  return value;
 }
 
 function getWindowsConsoleWidth(execImpl: typeof execFileSync): number | undefined {

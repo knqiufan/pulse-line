@@ -72,6 +72,7 @@ test('getTerminalWidth falls back to mode con on Windows', () => {
     platform: 'win32',
     stdoutColumns: undefined,
     stderrColumns: undefined,
+    noCache: true,
     execFileSyncImpl: execStub((command, args) => {
       assert.strictEqual(command, 'cmd.exe');
       assert.deepStrictEqual(args, ['/d', '/s', '/c', 'mode con']);
@@ -88,6 +89,7 @@ test('getTerminalWidth falls back to stty then tput on Unix', () => {
     platform: 'linux',
     stdoutColumns: undefined,
     stderrColumns: undefined,
+    noCache: true,
     execFileSyncImpl: execStub((command, args) => {
       assert.strictEqual(command, 'sh');
       assert.deepStrictEqual(args, ['-c', 'stty size < /dev/tty']);
@@ -101,6 +103,7 @@ test('getTerminalWidth falls back to stty then tput on Unix', () => {
     platform: 'darwin',
     stdoutColumns: undefined,
     stderrColumns: undefined,
+    noCache: true,
     execFileSyncImpl: execStub((command) => {
       if (command === 'sh') throw new Error('no tty');
       assert.strictEqual(command, 'tput');
